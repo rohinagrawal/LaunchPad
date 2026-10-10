@@ -1,5 +1,9 @@
 # LaunchPad
 
+**[Try the live tracker in your browser →](https://rohinagrawal.github.io/LaunchPad/)** No sign-up and nothing to install.
+
+[![A 45-second tour: one role moving from Screening to Offer, referral conversations sorting themselves into a pipeline, and the tracker's People, Today, Interviews and Insights screens](Site/assets/tour.gif)](https://rohinagrawal.github.io/LaunchPad/)
+
 A job search command center that runs on your own computer: a tracker for roles, people, companies and interviews, plus the documents and Claude skills that keep it filled. You find roles, find people who can refer you, ask them, apply, and follow every application to an offer in one place.
 
 - **Yours.** The app is plain Python and HTML with nothing to install. Your data is two JSON files in this repository.
