@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>LaunchPad — run your job search like a launch</title>
-<meta name="description" content="LaunchPad is a free, open-source job search command center that runs on your own computer: a tracker for roles, people, companies and interviews, plus Claude skills that keep it filled.">
+<meta name="description" content="LaunchPad is a free, open-source job search command center that runs on your own computer: a tracker for roles, people, companies and interviews, plus skills your AI agent follows to keep it filled.">
 <meta property="og:title" content="LaunchPad — run your job search like a launch">
 <meta property="og:description" content="A job search command center that runs on your own computer. Find roles, find people who can refer you, apply, and follow every application to an offer in one place.">
 <meta property="og:type" content="website">
@@ -16,7 +16,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#0d0d0c">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23191917'/%3E%3Cpath d='M16 6c4 3 6 7 6 12l-3 3h-6l-3-3c0-5 2-9 6-12zM13 24h6' fill='none' stroke='%23f0b35a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"LaunchPad","applicationCategory":"BusinessApplication","operatingSystem":"macOS, Linux, Windows","description":"A free, open-source job search command center that runs on your own computer: a tracker for roles, people, companies and interviews, plus Claude skills that keep it filled.","url":"https://rohinagrawal.github.io/LaunchPad/","license":"https://opensource.org/licenses/MIT","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"LaunchPad","applicationCategory":"BusinessApplication","operatingSystem":"macOS, Linux, Windows","description":"A free, open-source job search command center that runs on your own computer: a tracker for roles, people, companies and interviews, plus skills your AI agent follows to keep it filled.","url":"https://rohinagrawal.github.io/LaunchPad/","license":"https://opensource.org/licenses/MIT","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
 <link rel="stylesheet" href="site.css">
 <script>try{var t=localStorage.getItem('launchpad_site_theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(e){}</script>
 </head>
@@ -224,7 +224,7 @@
       <div class="rv"><dt><b data-count="0">0</b></dt><dd>Dependencies to install</dd></div>
       <div class="rv"><dt><b data-count="2">2</b></dt><dd>JSON files hold your data</dd></div>
       <div class="rv"><dt><b data-count="6">6</b></dt><dd>Screens in the tracker</dd></div>
-      <div class="rv"><dt><b data-count="11">11</b></dt><dd>Job-search skills for Claude</dd></div>
+      <div class="rv"><dt><b data-count="11">11</b></dt><dd>Job-search skills for your AI agent</dd></div>
     </dl>
   </div>
 </section>
@@ -266,7 +266,7 @@
     <h2 class="rv">Built around three promises.</h2>
     <div class="grid3">
       <article class="card rv"><span class="tag amber">01</span><h3>It is yours.</h3><p>The app is plain Python and HTML with nothing to install. Your data is two JSON files in your own repository, not rows in someone else's database.</p></article>
-      <article class="card rv"><span class="tag violet">02</span><h3>An agent does the legwork.</h3><p>Finding roles and referrers, drafting each ask, sending what you approved and following up all run as skills in Claude Code. The tracker still works by hand without it, but the automation is the point.</p></article>
+      <article class="card rv"><span class="tag violet">02</span><h3>An agent does the legwork.</h3><p>Finding roles and referrers, drafting each ask, sending what you approved and following up all run as skills your AI agent follows. The tracker still works by hand without it, but the automation is the point.</p></article>
       <article class="card rv"><span class="tag green">03</span><h3>Nothing is sent without your yes.</h3><p>Connection requests, messages, emails and applications all wait for your approval. Autopilot exists, and it is off until you switch it on.</p></article>
     </div>
   </div>
@@ -309,10 +309,10 @@
 
 <section class="band" id="skills">
   <div class="wrap">
-    <h2 class="rv">Say it. Claude does the legwork.</h2>
-    <p class="sub rv">Open the folder in Claude Code and the skills are already there. Each one reads your own thesis, resume and answer bank.</p>
+    <h2 class="rv">Say it. Your agent does the legwork.</h2>
+    <p class="sub rv">Open the folder in an AI coding agent and the skills are already there. Each one reads your own thesis, resume and answer bank.</p>
     <div class="play rv">
-      <div class="asks" role="tablist" aria-label="Things to say to Claude">
+      <div class="asks" role="tablist" aria-label="Things to say to your agent">
         <button type="button" role="tab" aria-selected="true" data-skill="setup-launchpad">set up LaunchPad</button>
         <button type="button" role="tab" aria-selected="false" data-skill="job-scrub">run a job scrub</button>
         <button type="button" role="tab" aria-selected="false" data-skill="people-finder">find people at Demo Corp</button>
@@ -350,7 +350,7 @@
         <p>Then open <code>http://localhost:8787</code>.</p></div></li>
       <li class="rv"><span class="num">3</span><div><h3>Or look around with demo data first</h3>
         <div class="term"><code>uv run Demo/demo_people.py --port 8799</code><button type="button" class="copy" data-copy="uv run Demo/demo_people.py --port 8799">Copy</button></div></div></li>
-      <li class="rv"><span class="num">4</span><div><h3>Connect the agent</h3><p>Open the folder in Claude Code and say <q>set up LaunchPad</q>. This is what turns the tracker into an automated pipeline.</p>
+      <li class="rv"><span class="num">4</span><div><h3>Connect the agent</h3><p>Open the folder in an AI coding agent, such as Claude Code, and say <q>set up LaunchPad</q>. This is what turns the tracker into an automated pipeline.</p>
         <a class="textlink" href="https://github.com/rohinagrawal/LaunchPad/blob/main/Docs/Setup.md">Read the setup guide →</a></div></li>
     </ol>
   </div>
@@ -359,14 +359,15 @@
 <section class="band" id="faq">
   <div class="wrap narrow">
     <h2 class="rv">Questions people ask.</h2>
-    <details class="rv"><summary>Is it free?</summary><p>Yes. LaunchPad is open source under the MIT licence. The skills run in Claude Code, which you bring yourself.</p></details>
-    <details class="rv"><summary>Do I need Claude to use it?</summary><p>For the automation, yes. Searching for roles, finding referrers, drafting and sending outreach, filling forms and interview prep are skills that run in Claude Code. Without it you still have the whole tracker, filled in by hand.</p></details>
+    <details class="rv"><summary>Is it free?</summary><p>Yes. LaunchPad is open source under the MIT licence. The skills run in an AI agent that you bring yourself.</p></details>
+    <details class="rv"><summary>Do I need an AI agent to use it?</summary><p>For the automation, yes. Searching for roles, finding referrers, drafting and sending outreach, filling forms and interview prep are skills an AI agent runs for you. Without one you still have the whole tracker, filled in by hand.</p></details>
+    <details class="rv"><summary>Which AI agents does it work with?</summary><p>The skills are plain-text playbooks in the repository, so any agent that reads a project folder can follow them. The steps that act for you, such as searching LinkedIn, sending outreach and filling forms, need an agent that can drive a browser and read your email. The guides walk through the setup with Claude Code.</p></details>
     <details class="rv"><summary>Where does my data live?</summary><p>In two JSON files, <code>Data/data.json</code> and <code>Data/contacts.json</code>, inside your own copy of the repository. Keep that copy private.</p></details>
     <details class="rv"><summary>Will it message people or apply for me on its own?</summary><p>Not unless you say so. Each message and application waits for your approval. Autopilot is opt-in and you choose its rules.</p></details>
-    <details class="rv"><summary>How is this different from a hosted AI job-agent service?</summary><p>LaunchPad runs on your own computer, costs nothing and is open source, so you can read and change all of it. There is no account, and your applications and contacts never sit on someone else's servers. The trade-off is that you set it up yourself and bring Claude Code for the AI parts.</p></details>
+    <details class="rv"><summary>How is this different from a hosted AI job-agent service?</summary><p>LaunchPad runs on your own computer, costs nothing and is open source, so you can read and change all of it. There is no account, and your applications and contacts never sit on someone else's servers. The trade-off is that you set it up yourself and bring your own AI agent for the automation.</p></details>
     <details class="rv"><summary>Does it apply to jobs automatically?</summary><p>It fills the application form from your answer bank and resume, then stops. You read it and press Submit yourself, and the card moves to Applied.</p></details>
     <details class="rv"><summary>Does it work with LinkedIn?</summary><p>Yes. One skill searches LinkedIn Jobs in your own logged-in browser, another finds people who could refer you and sends the connection requests you approved, within the daily and weekly limits you set. Referral asks can go by LinkedIn message or by email.</p></details>
-    <details class="rv"><summary>What do the AI skills cost?</summary><p>LaunchPad itself is free. The skills run in Claude Code, which uses your own Claude plan. The tracker by itself needs no plan.</p></details>
+    <details class="rv"><summary>What do the AI skills cost?</summary><p>LaunchPad itself is free. The skills run in your own AI agent, on whatever plan you already have for it. The tracker by itself needs none.</p></details>
     <details class="rv"><summary>Does it run on Windows and Linux?</summary><p>The tracker is plain Python and a web page, so it should run anywhere Python 3.9 does. It is developed and tested on macOS.</p></details>
     <details class="rv"><summary>How do I get updates?</summary><p>Keep your private copy pointed at the public repository as an upstream and pull from it. The <a href="https://github.com/rohinagrawal/LaunchPad/blob/main/Docs/Setup.md">setup guide</a> shows how.</p></details>
     <details class="rv"><summary>Can I use it on my phone?</summary><p>Yes, if you host a copy. The <a href="https://github.com/rohinagrawal/LaunchPad/blob/main/Docs/Hosting.md">hosting guide</a> puts the tracker online behind a password.</p></details>
