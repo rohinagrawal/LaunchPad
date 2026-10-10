@@ -40,7 +40,7 @@ python3 "LaunchPad App/server.py"
 
 Open http://localhost:8787. The rail on the left should end with `data.json · synced with the server`.
 
-To look around with fake data first, without touching anything of yours:
+To look around with demo data first, without touching anything of yours:
 
 ```bash
 uv run Demo/demo_people.py --port 8799

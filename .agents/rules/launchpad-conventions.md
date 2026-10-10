@@ -12,7 +12,7 @@ LaunchPad is a working job hunt and a product other job seekers should be able t
 ```text
 LaunchPad App/     app code only (Python stdlib, plain HTML/JS/CSS, no build step)
 Data/                everything the tracker stores
-Demo/                self-contained demo with fake data
+Demo/                self-contained demo with demo data
 Docs/                guides for people: setup, hosting, automation
 Site/                the public landing page; build.py adds a live demo of the tracker for GitHub Pages
 Job Listings/        saved postings and each run's New-Openings-YYYY-MM-DD.md review file

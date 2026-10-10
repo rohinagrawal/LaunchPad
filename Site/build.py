@@ -5,7 +5,7 @@
     python3 Site/build.py --serve 8801    # build into a temporary folder and serve it locally
 
 The output is Site/ plus app/: a copy of the tracker's own page, scripts and styles with
-demo-shim.js added, and demo-data.json holding the fake jobs and people from Demo/. Nothing
+demo-shim.js added, and demo-data.json holding the demo jobs and people from Demo/. Nothing
 is duplicated in the repository, so the demo on the site is always the current app.
 Standard library only.
 """
