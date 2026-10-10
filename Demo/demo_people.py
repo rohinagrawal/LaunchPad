@@ -1,4 +1,4 @@
-"""Serve a throwaway copy of the tracker with fake jobs and people, to try every tab.
+"""Serve a throwaway copy of the tracker with demo jobs and people, to try every tab.
 
   uv run Demo/demo_people.py               -> http://localhost:8799  (Ctrl-C to stop)
   uv run Demo/demo_people.py --port 8798   -> another port
@@ -95,7 +95,7 @@ def demo_jobs(today):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Serve a throwaway tracker with fake people.")
+    parser = argparse.ArgumentParser(description="Serve a throwaway tracker with demo people.")
     parser.add_argument("--port", type=int, default=PORT)
     port = parser.parse_args().port
     root = Path(tempfile.mkdtemp(prefix="people-demo-"))
