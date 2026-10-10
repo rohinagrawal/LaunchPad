@@ -14,7 +14,7 @@ From an empty computer to a working tracker with your own documents, in the orde
 
 ## 1. Get the code
 
-On GitHub, click **Use this template** on the LaunchPad repository and create your copy as a **private** repository. Then clone your copy:
+On GitHub, click **Use this template** on the LaunchPad repository and create your copy as a **private** repository, named for example `my-launchpad`. Then clone your copy:
 
 ```bash
 git clone <your private copy> LaunchPad
@@ -100,6 +100,30 @@ Everything is in the repository, so clone it there and do step 2. Three things l
 - the browser's own choices (theme, hidden columns).
 
 ## Updating
+
+Your copy does not follow the public repository by itself. Connect it once:
+
+```bash
+git remote add upstream https://github.com/rohinagrawal/LaunchPad.git
+```
+
+```bash
+git remote set-url --push upstream DISABLED
+```
+
+The second command makes it impossible to push your private files to the public repository by mistake. The first time, bring the product's history in with:
+
+```bash
+git pull upstream main --allow-unrelated-histories
+```
+
+After that, each update is:
+
+```bash
+git pull upstream main
+```
+
+Your own files (data, resume, thesis, documents) live in different paths from the product, so these pulls do not touch them. To pick up saves made on a hosted copy of yours:
 
 ```bash
 git pull --rebase --autostash
