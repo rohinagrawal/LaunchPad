@@ -319,11 +319,16 @@ class GitHubSync:
         """Pull the latest copy of each data file before serving anything."""
         if not self.enabled:
             return
+        # Name the repository, so a wrong TRACKER_GITHUB_REPO shows in the host's log.
+        print(f"[sync] saving to GitHub: {self.repo} (branch {self.branch})", flush=True)
         for path, prefix in paths:
             rel = self.repo_path(path)
             try:
                 with self.lock:
                     changed = self._take_remote(path, rel, prefix)
+                if rel not in self.shas:
+                    print(f"[sync] {rel}: not in that repository yet (the first save creates it)", flush=True)
+                    continue
                 print(f"[sync] {rel}: {'pulled from GitHub' if changed else 'up to date'}", flush=True)
             except (OSError, ValueError, KeyError) as e:
                 print(f"[sync] couldn't pull {rel} from GitHub, using the local copy: {e}",

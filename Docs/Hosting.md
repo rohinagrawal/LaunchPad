@@ -18,6 +18,7 @@ In Render, create a **Web Service** from your repository, branch `main`, with th
 
 | Setting | Value |
 |---|---|
+| Build command | `uv sync --frozen && uv cache prune --ci` |
 | Start command | `uv run tracker.py` |
 | Health check path | `/health` |
 | Build filter, ignored paths | `Data/**` and `Resume/Uploads/**`, so data commits do not redeploy the app |
@@ -36,6 +37,7 @@ In Render, create a **Web Service** from your repository, branch `main`, with th
 
 ## 4. Check it
 
+- In the host's log, the start-up lines name where saves go: `[sync] saving to GitHub: owner/name (branch main)`, then one line per data file. A file reported as "not in that repository yet" on a copy that already has data means `TRACKER_GITHUB_REPO` names the wrong repository.
 - Open the service URL. You should get the LaunchPad sign-in page, then your board.
 - Change something small and look for a `tracker: save Data/data.json` commit in the repository.
 - On your computer, `git pull` brings that change down.
@@ -47,6 +49,7 @@ In Render, create a **Web Service** from your repository, branch `main`, with th
 - **If two saves collide**, the later one is refused and the page reloads with the latest data; redo the change. Nothing is overwritten.
 - **If GitHub is unreachable**, the save stays on the host and is retried on the next save.
 - **Sign-in lasts 30 days.** `/logout` signs out. Changing `TRACKER_PASSWORD` signs everyone out.
+- **A data save should not redeploy.** If the deploy list shows deploys for `tracker: save Data/...` commits, the build filter from step 2 is missing; each such deploy restarts the server.
 - **Pushing code to `main` redeploys.** The server can only open links and reveal files on the computer it runs on, so on the hosted copy links open in a new tab and documents download instead.
 
 ## Previewing a change before it goes live
