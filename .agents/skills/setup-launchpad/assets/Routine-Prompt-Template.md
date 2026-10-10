@@ -34,7 +34,7 @@ RULES FOR EVERY RUN
 - Never print, commit or ask for a password or a token.
 
 SAVING THE RUN (only if files changed)
-Create branch `routine/[YYYY-MM-DD]-[am|pm]`; commit `Data/`, `Job Listings/`, `Applications/`, `Archive/` and any document changes; push; open a pull request to main with a summary. Check it before merging: the data files parse, no card or person was removed, existing cards changed only in status or by appended notes, every attachment path exists. Fix what you find with new commits, never a force-push. Then merge it and pull main. If a check fails that you cannot fix, leave the pull request open and say so.
+Create branch `routine/[YYYY-MM-DD]-[am|pm]`; commit `Data/`, `Job Listings/`, `Applications/`, `Archive/` and any document changes; push to `origin`; open a pull request to main in [OWNER/NAME] with a summary. Pass `--repo [OWNER/NAME]` to every `gh` command: if this folder has the public LaunchPad repository as an `upstream` remote, `gh` would otherwise aim at it. Never push to `upstream`, and never open a pull request or an issue there from a run. Check it before merging: the data files parse, no card or person was removed, existing cards changed only in status or by appended notes, every attachment path exists. Fix what you find with new commits, never a force-push. Then merge it and pull main. If a check fails that you cannot fix, leave the pull request open and say so.
 
 REPORT (short)
 New roles by tier, people added per company, what was sent, replies and referrals received, the pull request link, anything that stopped the run, and what is waiting for a yes.
