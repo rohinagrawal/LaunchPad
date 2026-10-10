@@ -114,14 +114,16 @@ git remote set-url --push upstream DISABLED
 The second command makes it impossible to push your private files to the public repository by mistake. The first time, bring the product's history in with:
 
 ```bash
-git pull upstream main --allow-unrelated-histories
+git pull --no-rebase upstream main --allow-unrelated-histories
 ```
 
 After that, each update is:
 
 ```bash
-git pull upstream main
+git pull --no-rebase upstream main
 ```
+
+`--no-rebase` makes the update a merge. Never rebase your copy onto the public repository: that would rewrite your own history.
 
 Your own files (data, resume, thesis, documents) live in different paths from the product, so these pulls do not touch them. To pick up saves made on a hosted copy of yours:
 
