@@ -6,6 +6,12 @@
       "runtimeExecutable": "python3",
       "runtimeArgs": ["tracker.py"],
       "port": 8787
+    },
+    {
+      "name": "site",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8801", "--directory", "Site"],
+      "port": 8801
     }
   ]
 }

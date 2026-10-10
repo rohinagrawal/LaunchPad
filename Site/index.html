@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LaunchPad — run your job search like a launch</title>
+<meta name="description" content="LaunchPad is a free, open-source job search command center that runs on your own computer: a tracker for roles, people, companies and interviews, plus Claude skills that keep it filled.">
+<meta property="og:title" content="LaunchPad — run your job search like a launch">
+<meta property="og:description" content="A job search command center that runs on your own computer. Find roles, find people who can refer you, apply, and follow every application to an offer in one place.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://rohinagrawal.github.io/LaunchPad/">
+<meta property="og:image" content="https://rohinagrawal.github.io/LaunchPad/assets/jobs-dark.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0d0d0c">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23191917'/%3E%3Cpath d='M16 6c4 3 6 7 6 12l-3 3h-6l-3-3c0-5 2-9 6-12zM13 24h6' fill='none' stroke='%23f0b35a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="site.css">
+<script>try{var t=localStorage.getItem('launchpad_site_theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav">
+  <a class="logo" href="#top" aria-label="LaunchPad home">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c3.2 2.4 4.8 5.6 4.8 9.6L14.4 15H9.6l-2.4-2.4C7.2 8.600 8.800 5.400 12 3zM9.600 18.500h4.800M11 21h2"/></svg>
+    LaunchPad
+  </a>
+  <nav class="navlinks" aria-label="Sections">
+    <a href="#how">How it works</a>
+    <a href="#screens">Screens</a>
+    <a href="#skills">Skills</a>
+    <a href="#start">Quick start</a>
+    <a href="#faq">FAQ</a>
+  </nav>
+  <span class="spacer"></span>
+  <button class="iconbtn" id="themebtn" type="button" aria-label="Switch between dark and light">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v18a9 9 0 0 0 0-18z" fill="currentColor"/></svg>
+  </button>
+  <a class="btn small" href="https://github.com/rohinagrawal/LaunchPad">GitHub</a>
+</header>
+
+<main id="main">
+
+<section class="hero" id="top">
+  <div class="glow" aria-hidden="true"></div>
+  <p class="eyebrow rv"><span class="dot"></span>Free and open source · MIT</p>
+  <h1 class="rv">Run your job search<br>like a <em>launch</em>.</h1>
+  <p class="lede rv">LaunchPad is a job search command center that runs on your own computer. Find roles, find the people who can refer you, ask them, apply, and follow every application to an offer in one place.</p>
+  <div class="cta rv">
+    <a class="btn primary" href="#start">Get started</a>
+    <a class="btn" href="https://github.com/rohinagrawal/LaunchPad">View on GitHub</a>
+  </div>
+  <p class="hint rv">Plain Python and HTML. Nothing to install. <span class="scrollcue">Scroll to follow one role to an offer ↓</span></p>
+</section>
+
+<!-- Scroll story: the page scrolls, the card moves. site.js drives it from the scroll position. -->
+<section class="story" id="how" aria-label="How one role moves through LaunchPad">
+  <div class="stage" data-step="0">
+    <ol class="steps">
+      <li class="on"><button type="button" data-go="0"><span class="num">01</span><b>A role lands in Screening</b><span>A search adds it with a six-part fit score, so you can see why it matched before you spend time on it.</span></button></li>
+      <li><button type="button" data-go="1"><span class="num">02</span><b>You approve it</b><span>The card moves to To Apply and the people most likely to refer you are lined up beside it.</span></button></li>
+      <li><button type="button" data-go="2"><span class="num">03</span><b>You ask for a referral</b><span>A tailored ask is drafted for each person. You read it and tick it. Nothing is sent without your yes.</span></button></li>
+      <li><button type="button" data-go="3"><span class="num">04</span><b>You apply</b><span>A tailored resume and cover letter are written, the form is filled from your answer bank, and it stops for your review.</span></button></li>
+      <li><button type="button" data-go="4"><span class="num">05</span><b>You interview</b><span>One prep document per interview, with stories drawn only from your real experience.</span></button></li>
+      <li><button type="button" data-go="5"><span class="num">06</span><b>Offer</b><span>Every step of the way is on one board, and nothing fell through a spreadsheet.</span></button></li>
+    </ol>
+
+    <div class="winwrap">
+      <div class="win" id="win" aria-hidden="true">
+        <div class="winbar"><i></i><i></i><i></i><span>localhost:8787</span></div>
+        <div class="winbody">
+          <div class="mrail">
+            <b>LaunchPad</b>
+            <span>Today</span><span class="on">Jobs</span><span>People</span><span>Companies</span><span>Interviews</span><span>Insights</span>
+          </div>
+          <div class="mmain">
+            <div class="mtop"><strong>Jobs</strong><span class="mseg"><u>Board</u>Table</span></div>
+            <div class="mkpis">
+              <div><b>7</b>Tracked</div>
+              <div><b data-kpi="0">3</b>Screening</div>
+              <div><b data-kpi="1">1</b>To apply</div>
+              <div><b data-kpi="2">2</b>Applied</div>
+              <div><b data-kpi="3">1</b>In process</div>
+              <div><b data-kpi="4">0</b>Offers</div>
+            </div>
+            <div class="mview" id="mview">
+              <div class="mtrack" id="mtrack">
+                <div class="mcol"><h4>Screening <span data-ct="0">3</span></h4><div class="slot"></div>
+                  <div class="gcard"><b>Sample Labs</b><span>Platform Engineer</span><em class="mid">Fit 71</em></div>
+                  <div class="gcard"><b>Placeholder Inc</b><span>Backend Engineer</span><em class="mid">Fit 68</em></div></div>
+                <div class="mcol"><h4>To Apply <span data-ct="1">1</span></h4><div class="slot"></div>
+                  <div class="gcard"><b>Fictional Systems</b><span>Senior Engineer</span><em>Fit 82</em></div></div>
+                <div class="mcol"><h4>Applied <span data-ct="2">2</span></h4><div class="slot"></div>
+                  <div class="gcard"><b>Example Co</b><span>Staff Engineer</span><em>Fit 90</em></div>
+                  <div class="gcard"><b>Mock Works</b><span>Infrastructure Engineer</span><em>Fit 84</em></div></div>
+                <div class="mcol"><h4>Interviewing <span data-ct="3">1</span></h4><div class="slot"></div>
+                  <div class="gcard"><b>Specimen AI</b><span>Senior Backend Engineer</span><em>Fit 88</em></div></div>
+                <div class="mcol"><h4>Offer <span data-ct="4">0</span></h4><div class="slot"></div></div>
+
+                <div class="hcard" id="hcard">
+                  <div class="hrow"><b>Demo Corp</b><span class="tier">Tier A</span></div>
+                  <span class="hrole">Senior Backend Engineer</span>
+                  <div class="hstate" data-s="0"><i class="pill amber">Keep or drop?</i><i class="fit">Fit 86</i></div>
+                  <div class="hstate" data-s="1"><i class="fit">Fit 86</i><i class="pill grey">3 people · Connecting</i></div>
+                  <div class="hstate" data-s="2"><i class="fit">Fit 86</i><i class="pill blue">Referral asked</i></div>
+                  <div class="hstate" data-s="3"><i class="pill blue">Applied today</i><i class="pill grey">Docs ✓</i></div>
+                  <div class="hstate" data-s="4"><i class="pill violet">Recruiter screen</i><i class="pill grey">Prep ✓</i></div>
+                  <div class="hstate" data-s="5"><i class="pill green">Offer</i><i class="pill grey">Referred</i></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mdetail">
+              <div class="dp" data-s="0">
+                <h5>Why it matched <span>Fit 86</span></h5>
+                <div class="bars">
+                  <label>Role<i style="--w:100%"></i></label><label>Skills<i style="--w:80%"></i></label><label>Level<i style="--w:80%"></i></label>
+                  <label>Pay<i style="--w:60%"></i></label><label>Location<i style="--w:100%"></i></label><label>Posting<i style="--w:80%"></i></label>
+                </div>
+              </div>
+              <div class="dp" data-s="1">
+                <h5>Who can refer you <span>3 people</span></h5>
+                <ul class="ppl">
+                  <li><b>Example Person One</b><span>ex-colleague</span><em>88%</em></li>
+                  <li><b>Example Person Five</b><span>alumni</span><em>75%</em></li>
+                  <li><b>Example Person Three</b><span>hiring manager</span><em>60%</em></li>
+                </ul>
+              </div>
+              <div class="dp" data-s="2">
+                <h5>Referral ask <span>draft</span></h5>
+                <p class="msg">Hi, it has been a while since we worked together. Demo Corp has a Senior Backend Engineer opening that lines up with the platform work I have been doing. Would you be open to referring me?</p>
+                <div class="approve"><span class="tick"></span>Approved by you <small>Sends on the next run</small></div>
+              </div>
+              <div class="dp" data-s="3">
+                <h5>Application <span>ready for review</span></h5>
+                <ul class="docs">
+                  <li><span class="tick"></span>Tailored resume</li>
+                  <li><span class="tick"></span>Cover letter</li>
+                  <li><span class="tick"></span>Form filled from your answer bank</li>
+                  <li class="wait"><span class="tick"></span>Waiting for you to press Submit</li>
+                </ul>
+              </div>
+              <div class="dp" data-s="4">
+                <h5>Interview prep <span>Recruiter screen</span></h5>
+                <ul class="docs two">
+                  <li><span class="tick"></span>Company snapshot</li>
+                  <li><span class="tick"></span>Likely questions</li>
+                  <li><span class="tick"></span>Stories from your experience</li>
+                  <li><span class="tick"></span>Questions to ask</li>
+                </ul>
+              </div>
+              <div class="dp" data-s="5">
+                <h5>Demo Corp <span>Offer</span></h5>
+                <p class="trail"><i>Screening</i><i>To Apply</i><i>Referred</i><i>Applied</i><i>Interviewing</i><i class="done">Offer</i></p>
+                <p class="msg">One card, six steps, all of it on your own computer.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="mocknote">Illustration of the Jobs board with made-up companies. Real screens are below.</p>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="promises">
+  <div class="wrap">
+    <h2 class="rv">Built around three promises.</h2>
+    <div class="grid3">
+      <article class="card rv"><span class="tag amber">01</span><h3>It is yours.</h3><p>The app is plain Python and HTML with nothing to install. Your data is two JSON files in your own repository, not rows in someone else's database.</p></article>
+      <article class="card rv"><span class="tag violet">02</span><h3>It works without AI.</h3><p>The tracker is a complete app by itself. The skills add searching, outreach drafts, form filling and interview prep when you open the folder in Claude Code.</p></article>
+      <article class="card rv"><span class="tag green">03</span><h3>Nothing is sent without your yes.</h3><p>Connection requests, messages, emails and applications all wait for your approval. Autopilot exists, and it is off until you switch it on.</p></article>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="screens">
+  <div class="wrap">
+    <h2 class="rv">The real thing, with demo data.</h2>
+    <p class="sub rv">These are screenshots of the tracker running the demo that ships in the repository. Every name in them is fake.</p>
+    <div class="tabs rv" role="tablist" aria-label="Tracker screens">
+      <button role="tab" aria-selected="true" aria-controls="shot" data-shot="today" data-cap="Today sorts what needs you, most urgent first, and lets you approve a whole batch in one go.">Today</button>
+      <button role="tab" aria-selected="false" aria-controls="shot" data-shot="jobs" data-cap="Jobs is a board from first look to offer. Each card carries its fit score, its people and its documents.">Jobs</button>
+      <button role="tab" aria-selected="false" aria-controls="shot" data-shot="people" data-cap="People shows who can refer you and where each conversation stands, from found to referred.">People</button>
+    </div>
+    <figure class="shot rv" id="shot" role="tabpanel">
+      <div class="winbar"><i></i><i></i><i></i><span>localhost:8799 · demo</span></div>
+      <img class="only-dark" id="shotd" src="assets/today-dark.png" width="1920" height="1200" alt="The Today screen of the LaunchPad tracker in dark mode, showing demo data" loading="lazy">
+      <img class="only-light" id="shotl" src="assets/today-light.png" width="1920" height="1200" alt="The Today screen of the LaunchPad tracker in light mode, showing demo data" loading="lazy">
+      <figcaption id="shotcap">Today sorts what needs you, most urgent first, and lets you approve a whole batch in one go.</figcaption>
+    </figure>
+
+    <div class="bento">
+      <article class="card rv wide"><h3>Six screens, one loop</h3><p>Today, Jobs, People, Companies, Interviews and Insights. Search any of them, or run a command, from one palette.</p><p class="kbdrow"><kbd>⌘</kbd><kbd>K</kbd></p></article>
+      <article class="card rv"><h3>Fit you can read</h3><p>Every role gets a six-part breakdown: role, skills, level, pay, location and posting.</p></article>
+      <article class="card rv"><h3>Referrals as a pipeline</h3><p>Found, queued, requested, connected, asked. You always know who is waiting on whom.</p></article>
+      <article class="card rv"><h3>Insights that stay honest</h3><p>Funnels for roles and outreach, and a reminder to read the counts before the percentages.</p></article>
+      <article class="card rv"><h3>Archive, never delete</h3><p>Closed and stale items move to an archive folder. Nothing you tracked is thrown away.</p></article>
+      <article class="card rv wide"><h3>On your phone, if you want it</h3><p>Host your own copy behind a password and it commits each save back to your private repository. The hosting guide walks through it.</p></article>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="skills">
+  <div class="wrap">
+    <h2 class="rv">Say it. Claude does the legwork.</h2>
+    <p class="sub rv">Open the folder in Claude Code and the skills are already there. Each one reads your own thesis, resume and answer bank.</p>
+    <div class="prompts">
+      <article class="prompt rv"><q>set up LaunchPad</q><p>Builds your job thesis, master resume and answer bank. Never overwrites what is there.</p><code>setup-launchpad</code></article>
+      <article class="prompt rv"><q>run a job scrub</q><p>Searches job boards against your thesis and adds scored matches to Screening.</p><code>job-scrub</code></article>
+      <article class="prompt rv"><q>find people at Demo Corp</q><p>Finds former colleagues, alumni, engineers in the team, hiring managers and recruiters.</p><code>people-finder</code></article>
+      <article class="prompt rv"><q>send outreach</q><p>Drafts referral asks and follow-ups by LinkedIn or email, and sends the ones you approved.</p><code>referral-outreach</code></article>
+      <article class="prompt rv"><q>generate my application docs</q><p>Writes a tailored resume and cover letter for the roles in To Apply.</p><code>generate-docs</code></article>
+      <article class="prompt rv"><q>apply to Demo Corp</q><p>Fills the application form from your answer bank and stops for your review before submitting.</p><code>apply-to-job</code></article>
+      <article class="prompt rv"><q>prep me for Demo Corp</q><p>Researches the company and the round, and builds stories from your real experience.</p><code>interview-prep</code></article>
+      <article class="prompt rv"><q>check for job replies</q><p>Reads your inbox for replies and moves the matching cards forward.</p><code>reply-monitor</code></article>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="start">
+  <div class="wrap narrow">
+    <h2 class="rv">Running in about a minute.</h2>
+    <p class="sub rv">You need Python 3.9 or later. There are no dependencies and there is no build step.</p>
+    <ol class="quick">
+      <li class="rv"><span class="num">1</span><div><h3>Make your own private copy</h3><p>Your job search data is committed to your copy, so keep it private.</p><a class="btn" href="https://github.com/rohinagrawal/LaunchPad/generate">Use this template</a></div></li>
+      <li class="rv"><span class="num">2</span><div><h3>Start the tracker</h3>
+        <div class="term"><code>uv run tracker.py</code><button type="button" class="copy" data-copy="uv run tracker.py">Copy</button></div>
+        <p>No uv? This does the same:</p>
+        <div class="term"><code>python3 "LaunchPad App/server.py"</code><button type="button" class="copy" data-copy='python3 "LaunchPad App/server.py"'>Copy</button></div>
+        <p>Then open <code>http://localhost:8787</code>.</p></div></li>
+      <li class="rv"><span class="num">3</span><div><h3>Or look around with fake data first</h3>
+        <div class="term"><code>uv run Demo/demo_people.py --port 8799</code><button type="button" class="copy" data-copy="uv run Demo/demo_people.py --port 8799">Copy</button></div></div></li>
+      <li class="rv"><span class="num">4</span><div><h3>Add the skills</h3><p>Open the folder in Claude Code and say <q>set up LaunchPad</q>. This step is optional.</p>
+        <a class="textlink" href="https://github.com/rohinagrawal/LaunchPad/blob/main/Docs/Setup.md">Read the setup guide →</a></div></li>
+    </ol>
+  </div>
+</section>
+
+<section class="band" id="faq">
+  <div class="wrap narrow">
+    <h2 class="rv">Questions people ask.</h2>
+    <details class="rv"><summary>Is it free?</summary><p>Yes. LaunchPad is open source under the MIT licence. The skills run in Claude Code, which you bring yourself.</p></details>
+    <details class="rv"><summary>Do I need Claude to use it?</summary><p>No. The tracker is a complete app by itself. The skills add searching, outreach drafts, form filling and interview prep.</p></details>
+    <details class="rv"><summary>Where does my data live?</summary><p>In two JSON files, <code>Data/data.json</code> and <code>Data/contacts.json</code>, inside your own copy of the repository. Keep that copy private.</p></details>
+    <details class="rv"><summary>Will it message people or apply for me on its own?</summary><p>Not unless you say so. Each message and application waits for your approval. Autopilot is opt-in and you choose its rules.</p></details>
+    <details class="rv"><summary>Can I use it on my phone?</summary><p>Yes, if you host a copy. The <a href="https://github.com/rohinagrawal/LaunchPad/blob/main/Docs/Hosting.md">hosting guide</a> puts the tracker online behind a password.</p></details>
+    <details class="rv"><summary>Can it run every day by itself?</summary><p>Yes. The <a href="https://github.com/rohinagrawal/LaunchPad/blob/main/Docs/Automation.md">automation guide</a> sets up a daily routine for the search, the people research and the drafts.</p></details>
+  </div>
+</section>
+
+<section class="final">
+  <div class="glow" aria-hidden="true"></div>
+  <h2 class="rv">Your next role is a pipeline,<br>not a pile of tabs.</h2>
+  <div class="cta rv">
+    <a class="btn primary" href="https://github.com/rohinagrawal/LaunchPad/generate">Use this template</a>
+    <a class="btn" href="https://github.com/rohinagrawal/LaunchPad">Star it on GitHub</a>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <span>LaunchPad · MIT licence</span>
+  <span class="spacer"></span>
+  <a href="https://github.com/rohinagrawal/LaunchPad">GitHub</a>
+  <a href="https://github.com/rohinagrawal/LaunchPad/blob/main/Docs/Setup.md">Setup</a>
+  <a href="https://github.com/rohinagrawal/LaunchPad/blob/main/Docs/Automation.md">Automation</a>
+  <a href="https://github.com/rohinagrawal/LaunchPad/blob/main/Docs/Hosting.md">Hosting</a>
+</footer>
+
+<script src="site.js"></script>
+</body>
+</html>
