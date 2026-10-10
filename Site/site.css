@@ -163,13 +163,11 @@ h3{font-size:19px;letter-spacing:-.015em;line-height:1.25}
 .tag{display:inline-block;font:600 12px ui-monospace,SFMono-Regular,Menlo,monospace;margin-bottom:38px;color:var(--tone)}
 .tag.amber{--tone:var(--amber)}.tag.violet{--tone:var(--violet)}.tag.green{--tone:var(--green)}
 
-.tabs{display:inline-flex;gap:4px;margin-top:30px;padding:4px;border:1px solid var(--line);border-radius:999px;background:var(--surface)}
-.tabs button{border:0;background:transparent;padding:8px 18px;border-radius:999px;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer}
-.tabs button[aria-selected="true"]{background:var(--accent);color:var(--on-accent)}
+.try{list-style:none;display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0}
+.try li{padding:6px 13px;border:1px solid var(--line2);border-radius:999px;font-size:13.5px;color:var(--text2);background:var(--surface)}
 .shot{margin:18px 0 0;border:1px solid var(--line2);border-radius:var(--r);overflow:hidden;background:var(--surface);box-shadow:var(--shadow)}
-.shot img{display:block;width:100%;height:auto;transition:opacity .2s ease}
-.shot img.swap{opacity:0}
-.shot figcaption{padding:13px 18px;border-top:1px solid var(--line);color:var(--text2);font-size:14.5px}
+.shot iframe{display:block;width:100%;height:min(760px,82vh);border:0;background:var(--bg)}
+.demobar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 14px;border-top:1px solid var(--line);color:var(--muted);font-size:13.5px}
 .bento{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:16px}
 .bento .wide{grid-column:span 2}
 .kbdrow{display:flex;gap:6px}

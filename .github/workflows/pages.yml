@@ -1,10 +1,10 @@
-# Publishes Site/ to GitHub Pages. Private copies have no public site, so the
+# Builds Site/ with a live demo of the tracker (Site/build.py) and publishes it to GitHub Pages. Private copies have no public site, so the
 # deploy runs only where the repository is public.
 name: Deploy site
 on:
   push:
     branches: [main]
-    paths: ["Site/**", ".github/workflows/pages.yml"]
+    paths: ["Site/**", "LaunchPad App/**", "Demo/**", ".github/workflows/pages.yml"]
   workflow_dispatch:
 permissions:
   contents: read
@@ -23,8 +23,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
+      - run: python3 Site/build.py _site
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: Site
+          path: _site
       - id: deployment
         uses: actions/deploy-pages@v4

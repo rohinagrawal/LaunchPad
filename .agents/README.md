@@ -15,7 +15,7 @@ LaunchPad is a job-search command center: a stdlib-only Python tracker app, its 
 | Root launcher | `tracker.py` | Thin pointer so `uv run tracker.py` works from the repo root |
 | Demo | `Demo/` | `demo_people.py`, a self-contained tracker with fake data |
 | Guides for people | `Docs/` | `Setup.md` (from nothing to running), `Hosting.md`, `Automation.md` |
-| Landing page | `Site/` | `index.html`, `site.css`, `site.js`, `assets/` (screenshots of the demo only); `.github/workflows/pages.yml` publishes it to GitHub Pages |
+| Landing page | `Site/` | `index.html`, `site.css`, `site.js`, `demo-shim.js`, `build.py` (adds a live copy of the tracker with the demo data); `.github/workflows/pages.yml` builds and publishes it to GitHub Pages |
 | The user's reference docs | repo root | `Job-Thesis.md`, `Target-Companies.md`, `START-HERE.md`, `README.md` |
 | The user's documents | `Resume/`, `Referral/`, `Cover Letters/`, `Company Research/` | Master resume, referral note and playbook, message templates |
 | Run output | `Job Listings/`, `Applications/`, `Interview Prep/`, `Archive/` | Saved postings and review files, per-company documents, interview prep documents, archived items |

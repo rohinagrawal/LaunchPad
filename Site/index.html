@@ -157,7 +157,7 @@
           </div>
         </div>
       </div>
-      <p class="mocknote">Illustration of the Jobs board with made-up companies. Real screens are below.</p>
+      <p class="mocknote">Illustration of the Jobs board with made-up companies. The live tracker is below.</p>
     </div>
   </div>
 </section>
@@ -176,18 +176,24 @@
 <section class="band" id="screens">
   <div class="wrap">
     <h2 class="rv">The real thing, with demo data.</h2>
-    <p class="sub rv">These are screenshots of the tracker running the demo that ships in the repository. Every name in them is fake.</p>
-    <div class="tabs rv" role="tablist" aria-label="Tracker screens">
-      <button role="tab" aria-selected="true" aria-controls="shot" data-shot="today" data-cap="Today sorts what needs you, most urgent first, and lets you approve a whole batch in one go.">Today</button>
-      <button role="tab" aria-selected="false" aria-controls="shot" data-shot="jobs" data-cap="Jobs is a board from first look to offer. Each card carries its fit score, its people and its documents.">Jobs</button>
-      <button role="tab" aria-selected="false" aria-controls="shot" data-shot="people" data-cap="People shows who can refer you and where each conversation stands, from found to referred.">People</button>
+    <p class="sub rv">This is the tracker itself, running in your browser with the demo data that ships in the repository. Every name in it is fake, and nothing you do here leaves this tab.</p>
+    <ul class="try rv" aria-label="Things to try">
+      <li>Drag a card to another column</li>
+      <li>Open a card to see its fit breakdown</li>
+      <li>Go to People and approve a message</li>
+      <li>Switch on Autopilot in Today</li>
+      <li>Search everything from the palette</li>
+    </ul>
+    <div class="shot rv">
+      <div class="winbar"><i></i><i></i><i></i><span>LaunchPad · live demo</span></div>
+      <iframe id="demoframe" src="app/#jobs" title="The LaunchPad tracker, live, with demo data" loading="lazy"></iframe>
+      <div class="demobar">
+        <span>Edits are kept in this tab only.</span>
+        <span class="spacer"></span>
+        <button type="button" class="btn small" id="demoreset">Reset demo</button>
+        <a class="btn small" href="app/" target="_blank" rel="noopener">Open full screen</a>
+      </div>
     </div>
-    <figure class="shot rv" id="shot" role="tabpanel">
-      <div class="winbar"><i></i><i></i><i></i><span>localhost:8799 · demo</span></div>
-      <img class="only-dark" id="shotd" src="assets/today-dark.png" width="1920" height="1200" alt="The Today screen of the LaunchPad tracker in dark mode, showing demo data" loading="lazy">
-      <img class="only-light" id="shotl" src="assets/today-light.png" width="1920" height="1200" alt="The Today screen of the LaunchPad tracker in light mode, showing demo data" loading="lazy">
-      <figcaption id="shotcap">Today sorts what needs you, most urgent first, and lets you approve a whole batch in one go.</figcaption>
-    </figure>
 
     <div class="bento">
       <article class="card rv wide"><h3>Six screens, one loop</h3><p>Today, Jobs, People, Companies, Interviews and Insights. Search any of them, or run a command, from one palette.</p><p class="kbdrow"><kbd>⌘</kbd><kbd>K</kbd></p></article>

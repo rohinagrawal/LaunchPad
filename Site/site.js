@@ -1,4 +1,4 @@
-/* LaunchPad landing page behaviour: theme switch, the scroll story, screenshot tabs,
+/* LaunchPad landing page behaviour: theme switch, the scroll story, the live demo frame,
    copy buttons and reveal-on-scroll. No dependencies. The page reads fine with this file missing. */
 (function(){
 'use strict';
@@ -11,6 +11,7 @@ document.getElementById('themebtn').addEventListener('click',()=>{
   const t=root.dataset.theme==='light'?'dark':'light';
   root.dataset.theme=t;
   try{localStorage.setItem('launchpad_site_theme',t);}catch(e){}
+  try{document.getElementById('demoframe').contentWindow.__demoTheme(t);}catch(e){}
 });
 
 /* ---------- scroll story ----------
@@ -74,28 +75,14 @@ stage.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>{
   scrollTo({top:top+(story.offsetHeight-innerHeight)*(+b.dataset.go/(N-1)),behavior:reduced?'auto':'smooth'});
 }));
 
-/* ---------- screenshot tabs ---------- */
-const tabs=[...document.querySelectorAll('.tabs [role=tab]')];
-const shotD=document.getElementById('shotd'),shotL=document.getElementById('shotl'),cap=document.getElementById('shotcap');
-function showShot(tab){
-  tabs.forEach(t=>t.setAttribute('aria-selected',t===tab?'true':'false'));
-  const name=tab.dataset.shot,label=tab.textContent;
-  [shotD,shotL].forEach(img=>img.classList.add('swap'));
-  setTimeout(()=>{
-    shotD.src='assets/'+name+'-dark.png';shotL.src='assets/'+name+'-light.png';
-    shotD.alt='The '+label+' screen of the LaunchPad tracker in dark mode, showing demo data';
-    shotL.alt='The '+label+' screen of the LaunchPad tracker in light mode, showing demo data';
-    cap.textContent=tab.dataset.cap;
-    [shotD,shotL].forEach(img=>img.classList.remove('swap'));
-  },reduced?0:180);
-}
-tabs.forEach((tab,i)=>{
-  tab.addEventListener('click',()=>showShot(tab));
-  tab.addEventListener('keydown',e=>{
-    if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft')return;
-    const next=tabs[(i+(e.key==='ArrowRight'?1:tabs.length-1))%tabs.length];
-    next.focus();showShot(next);
-  });
+/* ---------- live demo ----------
+   The frame holds the real tracker (see build.py). It reads the page's theme when it loads;
+   Reset drops the tab's demo edits and loads it again. */
+const frame=document.getElementById('demoframe');
+document.getElementById('demoreset').addEventListener('click',()=>{
+  try{sessionStorage.removeItem('launchpad_demo_v1');}catch(e){}
+  frame.src='app/#jobs';
+  try{frame.contentWindow.location.reload();}catch(e){}
 });
 
 /* ---------- copy buttons ---------- */
