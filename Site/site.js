@@ -132,6 +132,59 @@ stage.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>go
 // "How it works" lands on the first step, past the hero.
 document.querySelectorAll('a[href="#how"]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();goStep(0);}));
 
+/* ---------- referral maths ----------
+   One dot per conversation (roles x people per role). They drift about until you scroll, then
+   each slides into the column for the stage it is at. The split across stages is illustrative. */
+const chaos=document.querySelector('.chaos'),cstage=chaos.querySelector('.cstage'),arena=document.getElementById('arena');
+const crange=document.getElementById('crange'),PER_ROLE=5,MAX_DOTS=+crange.max*PER_ROLE;
+const SHARE=[.56,.16,.16,.12];          // requested, connected, asked, referred
+const rnd=i=>{const x=Math.sin(i*127.1+311.7)*43758.5453;return x-Math.floor(x);};
+const dots=[];
+for(let i=0;i<MAX_DOTS;i++){const d=document.createElement('i');d.className='cd';arena.appendChild(d);dots.push({el:d,rx:rnd(i),ry:rnd(i+500),ph:rnd(i+900)*6.28,sp:.4+rnd(i+1300)*.9,lag:rnd(i+1700)});}
+let cN=0,cW=0,cH=0,cSeen=false,cOrder=0;
+function chaosCount(){
+  const roles=+crange.value;cN=roles*PER_ROLE;
+  document.getElementById('croles').textContent=roles;
+  document.getElementById('cconv').textContent=cN;
+  chaos.querySelectorAll('[data-conv]').forEach(el=>{el.textContent=cN;});
+  document.getElementById('cmath').textContent=roles+' roles × '+PER_ROLE+' people each = '+cN+' conversations';
+  // Hand out stages in order of index; the scatter is random, so the mess shows no pattern.
+  const cut=[],counts=[0,0,0,0];let acc=0;
+  SHARE.forEach(s=>{acc+=s;cut.push(Math.round(acc*cN));});
+  dots.forEach((d,i)=>{
+    const on=i<cN;d.el.classList.toggle('off',!on);if(!on)return;
+    const st=cut.findIndex(c=>i<c);d.st=st<0?0:st;d.slot=counts[d.st]++;
+    d.el.className='cd s'+d.st;
+  });
+  counts.forEach((n,i)=>{arena.querySelector('[data-n="'+i+'"]').textContent=n;});
+  chaosDraw(performance.now());
+}
+function chaosDraw(now){
+  if(!cW)return;
+  const t=now/1000,colW=cW/4,gap=cH<300?12:15,per=Math.max(1,Math.floor((colW-20)/gap));
+  for(let i=0;i<cN;i++){
+    const d=dots[i],o=ease(clamp(cOrder*1.5-d.lag*.5,0,1)),w=reduced?0:(1-o)*9;
+    const mx=14+d.rx*(cW-38)+Math.sin(t*d.sp+d.ph)*w,my=14+d.ry*(cH-38)+Math.cos(t*d.sp*.8+d.ph)*w;
+    const ox=d.st*colW+12+(d.slot%per)*gap,oy=50+Math.floor(d.slot/per)*gap;
+    d.el.style.transform='translate('+(mx+(ox-mx)*o)+'px,'+(my+(oy-my)*o)+'px)';
+  }
+}
+function chaosScroll(){
+  const r=chaos.getBoundingClientRect(),p=clamp(-r.top/(r.height-innerHeight),0,1);
+  cOrder=clamp((p-.2)/.5,0,1);
+  cstage.dataset.phase=cOrder>.5?'order':'mess';
+  arena.classList.toggle('sorted',cOrder>.5);
+  arena.style.setProperty('--o',cOrder);
+}
+function chaosSize(){cW=arena.clientWidth;cH=arena.clientHeight;chaosScroll();chaosDraw(performance.now());}
+(function loop(now){if(cSeen){chaosDraw(now);}requestAnimationFrame(loop);})(0);
+if('IntersectionObserver' in window)new IntersectionObserver(es=>{cSeen=es[0].isIntersecting;}).observe(chaos);else cSeen=true;
+crange.addEventListener('input',chaosCount);
+addEventListener('scroll',chaosScroll,{passive:true});
+addEventListener('resize',chaosSize);
+addEventListener('load',chaosSize);
+chaosSize();chaosCount();
+
 /* ---------- facts: count up once, when seen ---------- */
 function countUp(el){
   const to=+el.dataset.count;if(!to||reduced)return;
