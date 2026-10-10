@@ -59,7 +59,7 @@ The skills live in `.agents/skills/`, so a fresh clone has them.
 |---|---|
 | `LaunchPad App/` | The tracker, code only. `tracker.py` at the root runs it |
 | `Data/` | Everything the tracker stores: `data.json` (jobs), `contacts.json` (people), `autopilot.json`, and local `backups/`. See [Data/README.md](Data/README.md) |
-| `Demo/` | A throwaway tracker with fake data |
+| `Demo/` | A throwaway tracker with demo data |
 | `Docs/` | The guides above |
 | `Site/` | The landing page, published to GitHub Pages from the public repository |
 | `.agents/` | The skills, rules and guide for AI agents. `AGENTS.md` at the root points to it |

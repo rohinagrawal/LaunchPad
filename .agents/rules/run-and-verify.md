@@ -10,7 +10,7 @@ LaunchPad is a uv-managed Python project with no dependencies and no build step.
 ## Running
 
 - `uv run tracker.py` from the repo root starts the tracker on http://localhost:8787. Without uv, `cd "LaunchPad App" && python3 server.py` does the same.
-- `uv run Demo/demo_people.py` serves a throwaway tracker with fake people on port 8799 (`--port` to change it). It writes to a temporary folder and ignores `TRACKER_*` environment variables.
+- `uv run Demo/demo_people.py` serves a throwaway tracker with demo people on port 8799 (`--port` to change it). It writes to a temporary folder and ignores `TRACKER_*` environment variables.
 - `python3 Site/build.py --serve 8801` serves the landing page with its live demo; the demo there is the real app answered by `Site/demo-shim.js`, with no server and no data folder.
 - `--host`/`HOST` and `PORT` control where the server listens. It refuses to listen beyond localhost unless `TRACKER_PASSWORD` is set.
 
