@@ -3,7 +3,7 @@
 A job search command center that runs on your own computer: a tracker for roles, people, companies and interviews, plus the documents and Claude skills that keep it filled. You find roles, find people who can refer you, ask them, apply, and follow every application to an offer in one place.
 
 - **Yours.** The app is plain Python and HTML with nothing to install. Your data is two JSON files in this repository.
-- **An agent does the legwork.** Finding roles and referrers, drafting each ask, sending what you approved and following up run as skills when you open the folder in Claude Code. The tracker still works by hand without it.
+- **AI does the legwork.** Finding roles and referrers, drafting each ask, sending what you approved and following up run as skills when you open the folder in Claude Code. The tracker still works by hand without it.
 - **Nothing is sent for you without your yes.**
 
 ## Quick start
