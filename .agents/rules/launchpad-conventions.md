@@ -37,7 +37,7 @@ LaunchPad is published as a public repository that holds only the product. A per
 - Product, the same for every user: `LaunchPad App/`, `.agents/`, `.claude/`, `.github/`, `Demo/`, `Docs/`, `README.md`, `AGENTS.md`, `LICENSE`, `tracker.py`, `pyproject.toml`, `uv.lock`, `Data/README.md`, `Archive/README.md`.
 - Personal, never in the public repository: `Data/*.json`, `Resume/`, `Referral/`, `Applications/`, `Job Listings/`, `Interview Prep/`, `Cover Letters/`, `Company Research/`, `Archive/` contents, `Job-Thesis.md`, `Target-Companies.md`, `START-HERE.md`.
 - Nothing personal goes in a product path. Personal settings live in `Data/outreach-config.json`; `LaunchPad App/outreach-config.json` holds the defaults.
-- In a private copy that has the public repository as its `upstream` remote, make product changes in a clone of the public repository and bring them in with `git pull --no-rebase upstream main`. Never push from the private copy to `upstream`.
+- In a private copy that has the public repository as its `upstream` remote, make product changes in a clone of the public repository and bring them in with `git pull --no-rebase upstream main`. Never push from the private copy to `upstream`. In that copy `gh` must target the private repository (`gh repo set-default`), and every `gh` command in an automated run names it with `--repo`.
 - `python3 .agents/scripts/check-public-tree.py` fails when a personal path is present; the public repository runs it on every pull request.
 
 ## Changing Data

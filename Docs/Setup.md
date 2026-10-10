@@ -111,7 +111,15 @@ git remote add upstream https://github.com/rohinagrawal/LaunchPad.git
 git remote set-url --push upstream DISABLED
 ```
 
-The second command makes it impossible to push your private files to the public repository by mistake. The first time, bring the product's history in with:
+The second command makes it impossible to push your private files to the public repository by mistake.
+
+If you use the GitHub CLI, also tell it that this folder belongs to your copy:
+
+```bash
+gh repo set-default <owner>/<your private copy>
+```
+
+Without this, `gh` treats a remote named `upstream` as the place to open pull requests, so a pull request made from your folder, by you or by the daily routine, would be aimed at the public repository. Check with `gh repo view`: it must show your private copy. The first time, bring the product's history in with:
 
 ```bash
 git pull --no-rebase upstream main --allow-unrelated-histories
