@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>LaunchPad</title>
+<script>/* Apply a chosen theme before the first paint; no choice means follow the system. */
+try{var t=localStorage.getItem('launchpad_theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(e){}</script>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div class="app">
+<nav class="rail" aria-label="Screens">
+  <div class="brand">LaunchPad<small>Job search tracker</small></div>
+  <button class="navbtn" id="dm" onclick="setDataset('move')"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16 9.5"/></svg><span class="lbl">Today</span><span class="navbadge" id="dmn"></span></button>
+  <button class="navbtn" id="dj" onclick="setDataset('jobs')"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18"/></svg><span class="lbl">Jobs</span></button>
+  <button class="navbtn" id="dp" onclick="setDataset('people')"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.5a6.5 6.5 0 0 1 3.5 5.5"/></svg><span class="lbl">People</span></button>
+  <button class="navbtn" id="dc" onclick="setDataset('companies')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M16 9h2a2 2 0 0 1 2 2v10M2 21h20M8 7h4M8 11h4M8 15h4"/></svg><span class="lbl">Companies</span></button>
+  <button class="navbtn" id="dv" onclick="setDataset('interviews')"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span class="lbl">Interviews</span></button>
+  <button class="navbtn" id="di" onclick="setDataset('insights')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span class="lbl">Insights</span></button>
+  <div class="railfoot">
+    <button class="navbtn" onclick="Screens.openPalette()" title="Search jobs, people and companies, or run a command"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span class="lbl">Search</span><kbd id="palkey">Ctrl K</kbd></button>
+    <button class="navbtn" onclick="cycleTheme()" title="Switch between system, light and dark"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v18a9 9 0 0 0 0-18z" fill="currentColor"/></svg><span class="lbl" data-themelbl>Theme: system</span></button>
+    <span id="filestat" class="filechip">Browser storage</span>
+  </div>
+</nav>
+<main class="main">
+  <header class="top">
+    <div><h1 id="ptitle">Jobs</h1><p class="psub" id="psub"></p></div>
+    <span class="spacer"></span>
+    <div class="topact">
+      <div class="seg" id="viewseg"><button id="vb" class="on" onclick="setView('board')">Board</button><button id="vt" onclick="setView('table')">Table</button></div>
+      <button class="btn primary" id="btnAdd" onclick="addClicked()">+ Add job</button>
+      <span class="menuwrap" id="morewrap"><button class="btn" id="btnMore" type="button" aria-haspopup="true">More</button>
+        <div class="menu" id="moremenu">
+          <button class="btn" onclick="Screens.openPalette()">Search everything</button>
+          <button class="btn" onclick="cycleTheme()" data-themelbl>Theme: system</button>
+          <button class="btn" id="btnExport" onclick="exportJSON()">Export jobs (JSON)</button>
+          <button class="btn" id="btnImport" onclick="document.getElementById('imp').click()">Import jobs (JSON)</button>
+          <button class="btn" id="btnCsv" onclick="exportCSV()">Export jobs (CSV)</button>
+          <button class="btn" id="btnOpen" onclick="linkOpen()" style="display:none">Open file</button>
+          <button class="btn" id="btnSaveAs" onclick="linkNew()" style="display:none">Save As file</button>
+          <button class="btn" id="btnUnlink" onclick="unlinkFile()" style="display:none">Unlink</button>
+          <button class="btn" id="btnReconnect" onclick="reconnect()" style="display:none">Reconnect</button>
+        </div></span>
+      <input type="file" id="imp" accept="application/json" class="hidden" onchange="importJSON(event)">
+    </div>
+  </header>
+  <div class="kpis" id="kpis"></div>
+  <div class="controls" id="controls">
+    <input type="search" id="q" placeholder="Search company, role, notes…" oninput="render()">
+    <select id="sf" onchange="render()"><option value="">All statuses</option></select>
+    <label class="chk" id="lblHide"><input type="checkbox" id="sc" onchange="render()"> Hide closed &amp; won't-apply</label>
+    <span class="colwrap" id="colwrap"><button class="btn" id="btnCols" type="button">Columns ▾</button><div class="colmenu" id="colmenu"></div></span>
+  </div>
+  <div id="ymove" class="view hidden"></div>
+  <div id="board" class="view board"></div>
+  <div id="table" class="view hidden"></div>
+  <div id="people" class="view hidden"></div>
+  <div id="companies" class="view hidden"></div>
+  <div id="interviews" class="view hidden"></div>
+  <div id="insights" class="view hidden"></div>
+  <footer id="foot"></footer>
+</main>
+</div>
+
+<!-- Job panel: details and actions for one job (filled by screens.js). -->
+<div class="modal" id="jdrawer"><div class="sheet" id="jsheet"></div></div>
+
+<div class="modal" id="modal">
+  <div class="sheet">
+    <div class="dhead"><div class="dt"><h2 id="mtitle">Edit job</h2></div><button class="xbtn" type="button" onclick="closeEdit()" aria-label="Close">×</button></div>
+    <div class="grid" style="margin-top:14px">
+      <div class="field"><label>Company *</label><input id="f_company"></div>
+      <div class="field"><label>Role / Title</label><input id="f_role"></div>
+      <div class="field"><label>Status</label><select id="f_status"></select></div>
+      <div class="field"><label>Tier</label><select id="f_tier"><option value=""></option><option value="A">A — primary fit</option><option value="B">B — stretch</option><option value="C">C — strong IC target</option></select></div>
+      <div class="field"><label>Arrangement</label><select id="f_arrangement"><option>Remote</option><option>Hybrid</option><option>Onsite</option><option value=""></option></select></div>
+      <div class="field"><label>Location</label><input id="f_location"></div>
+      <div class="field"><label>Salary range</label><input id="f_salary"></div>
+      <div class="field"><label>Excitement (1–5)</label><select id="f_excitement"><option value=""></option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></div>
+      <div class="field"><label>Date applied</label><input id="f_dateApplied" type="date"></div>
+      <div class="field"><label>Next follow-up</label><input id="f_nextFollowup" type="date"></div>
+      <div class="field"><label>Last contact</label><input id="f_lastContact" type="date"></div>
+      <div class="field"><label>Contact / recruiter</label><input id="f_contact"></div>
+      <div class="field"><label>Resume version</label><input id="f_resumeVersion"></div>
+      <div class="field"><label>Cover letter?</label><select id="f_coverLetter"><option value=""></option><option>Yes</option><option>No</option><option>N/A</option></select></div>
+      <div class="field"><label>Source</label><input id="f_source"></div>
+      <div class="field full"><label>Posting URL</label><input id="f_url" placeholder="https://…"></div>
+      <div class="field full"><label>Notes</label><textarea id="f_notes"></textarea></div>
+      <div class="field full"><label>Documents</label>
+        <div class="docrow" id="docctrl"></div>
+        <input id="f_resumeLink" placeholder="Résumé link or file path (optional)">
+        <input id="f_coverLink" placeholder="Cover letter link or file path (optional)" style="margin-top:8px">
+      </div>
+    </div>
+    <div class="foot">
+      <button class="btn danger" id="delbtn" onclick="deleteCurrent()">Delete</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn" onclick="closeEdit()">Cancel</button>
+        <button class="btn primary" onclick="saveEdit()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="pal"><div class="palbox"><input id="palq" placeholder="Search jobs, people, companies, or type a command" autocomplete="off" aria-label="Search">
+  <div class="pallist" id="pallist"></div>
+  <div class="palfoot"><span><kbd>↑</kbd> <kbd>↓</kbd> move</span><span><kbd>Enter</kbd> open</span><span><kbd>Esc</kbd> close</span></div></div></div>
+
+<script>
+/* Requests to our own server always use a clean address. If the page was opened with the login
+   in the URL (https://user:password@host/), browsers refuse relative fetches outright, which
+   used to drop the page silently into browser-only mode with the demo rows. */
+(function(){
+  const base=location.origin+location.pathname.replace(/[^/]*$/,'');
+  const nativeFetch=window.fetch.bind(window);
+  window.fetch=(url,opts)=>nativeFetch(typeof url==='string'&&!/^[a-z][a-z0-9+.-]*:/i.test(url)&&!url.startsWith('/')?base+url:url,opts);
+})();
+const SEED = [
+  {
+    "id": "demo-1",
+    "company": "Acme Cloud",
+    "role": "Customer Success Manager",
+    "location": "Remote (US)",
+    "arrangement": "Remote",
+    "url": "https://example.com/jobs/acme-csm",
+    "salary": "$120–150k",
+    "excitement": "4",
+    "status": "To Apply",
+    "dateApplied": "",
+    "nextFollowup": "",
+    "lastContact": "",
+    "contact": "",
+    "source": "Demo data",
+    "resumeVersion": "",
+    "coverLetter": "",
+    "notes": "Demo row — edit or delete me. Add your own with + Add."
+  },
+  {
+    "id": "demo-2",
+    "company": "Northwind Labs",
+    "role": "Senior Support Engineer",
+    "location": "Remote (US)",
+    "arrangement": "Remote",
+    "url": "https://example.com/jobs/northwind-sse",
+    "salary": "$130–160k",
+    "excitement": "5",
+    "status": "Applied",
+    "dateApplied": "2026-06-25",
+    "nextFollowup": "2026-07-06",
+    "lastContact": "2026-06-25",
+    "contact": "recruiting@example.com",
+    "source": "Demo data",
+    "resumeVersion": "v2",
+    "coverLetter": "Yes",
+    "notes": "Demo row — shows how an applied role looks."
+  },
+  {
+    "id": "demo-3",
+    "company": "Globex",
+    "role": "Director of Support",
+    "location": "Hybrid — Denver, CO",
+    "arrangement": "Hybrid",
+    "url": "https://example.com/jobs/globex-dos",
+    "salary": "$160–190k",
+    "excitement": "3",
+    "status": "Screening",
+    "dateApplied": "",
+    "nextFollowup": "",
+    "lastContact": "",
+    "contact": "",
+    "source": "Demo data",
+    "resumeVersion": "",
+    "coverLetter": "",
+    "notes": "Demo row — new finds land in Screening."
+  }
+];
+const KEY = 'launchpad_v1';
+
+const STAGES=[
+ {key:'Screening',    match:['Screening','Researching'],            primary:'Screening'},
+ {key:'To Apply',     match:['To Apply'],                           primary:'To Apply'},
+ {key:'Applied',      match:['Applied'],                            primary:'Applied'},
+ {key:'Phone Screen', match:['Phone Screen'],                       primary:'Phone Screen'},
+ {key:'Interviewing', match:['Interviewing','Take-home','Final Round'], primary:'Interviewing'},
+ {key:'Offer',        match:['Offer','Accepted'],                   primary:'Offer'},
+ {key:'Closed',       match:['Rejected','Withdrawn','Ghosted'],     primary:'Rejected', hide:true},
+ {key:"Won't Apply",  match:["Won't Apply"],                        primary:"Won't Apply", hide:true},
+];
+const ALL_STATUSES=['Researching','Screening','To Apply','Applied','Phone Screen','Interviewing','Take-home','Final Round','Offer','Accepted','Rejected','Withdrawn','Ghosted',"Won't Apply"];
+const TONE={"Researching":"grey","Screening":"grey","To Apply":"amber","Applied":"blue","Phone Screen":"blue","Interviewing":"violet","Take-home":"violet","Final Round":"violet","Offer":"green","Accepted":"green","Rejected":"red","Withdrawn":"grey","Ghosted":"grey","Won't Apply":"grey"};
+const HIDDEN=['Rejected','Withdrawn','Ghosted',"Won't Apply"];
+const today=new Date().toISOString().slice(0,10);
+// Closed cards get a dateClosed (cleanup.py archives them 30 days later); reopening clears it.
+function stampClosed(a){if(!a)return;
+  if(HIDDEN.includes(a.status)){if(!a.dateClosed)a.dateClosed=today;}
+  else{delete a.dateClosed;delete a.autoClosed;}}
+function stampApplied(a){ // when a card lands in Applied, stamp the date + a 7-day follow-up
+  if(!a||a.status!=='Applied')return;
+  if(!a.dateApplied)a.dateApplied=today;
+  if(!a.nextFollowup){const d=new Date(a.dateApplied+'T12:00:00');d.setDate(d.getDate()+7);a.nextFollowup=d.toISOString().slice(0,10);}
+}
+
+let state={apps:[]};
+let view='board', dataset='jobs', sortKey=null, sortDir=1, editingId=null;
+let companyOpen=''; // the company page shown on Companies, or '' for the list
+let editFrom=null;  // the job panel to return to when the form closes
+let collapsedCols=new Set(), hiddenCols=new Set();
+function loadColPrefs(){
+  try{collapsedCols=new Set(JSON.parse(localStorage.getItem('launchpad_collapsed_cols')||'[]'));}catch(e){collapsedCols=new Set();}
+  try{hiddenCols=new Set(JSON.parse(localStorage.getItem('launchpad_hidden_cols')||'[]'));}catch(e){hiddenCols=new Set();}
+}
+function saveColPrefs(){try{localStorage.setItem('launchpad_collapsed_cols',JSON.stringify([...collapsedCols]));localStorage.setItem('launchpad_hidden_cols',JSON.stringify([...hiddenCols]));}catch(e){}}
+function toggleCollapse(key){if(collapsedCols.has(key))collapsedCols.delete(key);else collapsedCols.add(key);saveColPrefs();renderBoard(visible(state.apps));}
+function toggleHidden(key){if(hiddenCols.has(key))hiddenCols.delete(key);else hiddenCols.add(key);saveColPrefs();render();}
+function resetCols(){collapsedCols.clear();hiddenCols.clear();saveColPrefs();buildColMenu();render();}
+function buildColMenu(){
+  const m=document.getElementById('colmenu');if(!m)return;
+  let h='<div class="cm-hint">Show / hide columns</div>';
+  STAGES.forEach((s,i)=>{const shown=!hiddenCols.has(s.key);
+    h+=`<label class="cm-row"><input type="checkbox" ${shown?'checked':''} data-vis="${i}"><span style="flex:1">${esc(s.key)}</span></label>`;});
+  h+='<div class="cm-foot"><span class="minibtn" id="cmReset">Reset columns</span><span class="minibtn" id="cmClose">Done</span></div>';
+  m.innerHTML=h;
+  m.querySelectorAll('input[data-vis]').forEach(cb=>cb.addEventListener('change',()=>toggleHidden(STAGES[+cb.dataset.vis].key)));
+  document.getElementById('cmReset').addEventListener('click',resetCols);
+  document.getElementById('cmClose').addEventListener('click',()=>m.classList.remove('show'));
+}
+
+function uid(){return 'app-'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+function load(){
+  let raw=null; try{raw=localStorage.getItem(KEY);}catch(e){}
+  if(raw){try{state.apps=JSON.parse(raw);}catch(e){state.apps=structuredClone(SEED);}}
+  else{state.apps=structuredClone(SEED);}
+  state.apps.forEach(a=>{if(!a.id)a.id=uid();});
+}
+function cacheLocal(){try{localStorage.setItem(KEY,JSON.stringify(state.apps));}catch(e){}}
+let jobsSavedAt=null; // shown in the footer; only a real save updates it
+function save(){cacheLocal();jobsSavedAt=new Date();stamp();if(serverMode){persistServer();}else{persistFile();}}
+function stamp(){const f=document.getElementById('foot');const n=state.apps.length;
+  const target=serverMode?'data.json':usingFile&&fileHandle?fileHandle.name:'this browser';
+  const where=jobsSavedAt?`Saved to ${target} · ${jobsSavedAt.toLocaleString()}`:`Loaded from ${target}`;
+  const tip=serverMode?'Server owns the file · rolling backups in Data/backups/.':usingFile?'Backed by a file on disk.':'Link a file or Export to back up / move devices.';
+  f.innerHTML=`<span>${n} application${n===1?'':'s'}</span><span>${where}</span><span>${tip}</span>`;}
+
+/* ---------- Local server sync (server.py) ----------
+   When the app is served by server.py, the server owns data.json:
+   reads on load, atomic writes on every change, rolling backups.
+   Detected via /health; when absent (file://, GitHub Pages) the app
+   falls back to the File System Access API / localStorage below. */
+let serverMode=false, srvWriting=false, srvPending=false, dataRevision='';
+let serverLoadError=''; // set when the tracker server is there but our data couldn't be loaded
+async function initServerSync(){
+  try{
+    const h=await fetch('health',{cache:'no-store'});if(!h.ok)return false;
+    const hj=await h.json();if(!hj.ok)return false;
+    // From here on a tracker server is definitely there, so a failure is an error to show,
+    // never a reason to fall back to the demo rows.
+    serverLoadError='could not reach the server';
+    const r=await fetch('data.json',{cache:'no-store'});
+    if(!r.ok){serverLoadError=r.status===401?'you are signed out; reload to sign in':'the server answered HTTP '+r.status;return false;}
+    const data=await r.json();if(!Array.isArray(data)){serverLoadError='the server sent unexpected data';return false;}
+    serverLoadError='';
+    dataRevision=r.headers.get('X-Data-Revision')||'';
+    serverMode=true;state.apps=data;state.apps.forEach(a=>{if(!a.id)a.id=uid();});
+    cacheLocal();loadAutopilot();return true;
+  }catch(e){return false;}
+}
+async function persistServer(){
+  if(!serverMode)return;
+  if(srvWriting){srvPending=true;return;}
+  srvWriting=true;
+  try{
+    const r=await fetch('save',{method:'POST',headers:{'Content-Type':'application/json','X-Base-Revision':dataRevision},body:JSON.stringify(state.apps)});
+    const j=await r.json().catch(()=>({}));
+    if(r.status===409){
+      // Someone else saved first (a Claude run, another tab, or the copy on GitHub).
+      srvWriting=false;srvPending=false;
+      await reloadFromServer();
+      toast('Jobs changed elsewhere (a Claude run or another device?) — reloaded the latest. Please redo your last change.');
+      return;
+    }
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    if(j.revision)dataRevision=j.revision;
+    if(j.syncWarning)toast('⚠ Saved here, but not yet to GitHub — it will retry on the next save.');
+  }catch(e){
+    toast('⚠ Save to data.json failed — edits are cached in this browser only. Is the tracker server running?');
+  }
+  srvWriting=false;
+  if(srvPending){srvPending=false;persistServer();}
+}
+/* Re-read data.json if it changed since we loaded it — on a 409, and when the
+   tab comes back into view, so a tab left open picks up a scrub or reply check
+   that ran meanwhile (and, on a hosted copy, saves from other devices). */
+async function reloadFromServer(){
+  if(!serverMode)return;
+  try{
+    const r=await fetch('data.json',{cache:'no-store'});if(!r.ok)return;
+    const rev=r.headers.get('X-Data-Revision')||'';
+    if(rev&&rev===dataRevision)return;
+    const data=await r.json();if(!Array.isArray(data))return;
+    dataRevision=rev;state.apps=data;state.apps.forEach(a=>{if(!a.id)a.id=uid();});
+    cacheLocal();initFilters();render();
+  }catch(e){}
+}
+function maybeReloadJobs(){if(serverMode&&!srvWriting&&!srvPending&&!editingId)reloadFromServer();}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')maybeReloadJobs();});
+window.addEventListener('focus',maybeReloadJobs);
+/* The server can open links and show files only on the computer it runs on. On a hosted
+   copy (e.g. Render) the browser opens links itself, and documents are downloaded instead. */
+const localServer=['localhost','127.0.0.1','[::1]'].includes(location.hostname);
+function openExternal(url){
+  if(serverMode&&localServer){fetch('open?url='+encodeURIComponent(url)).then(r=>{if(!r.ok)window.open(url,'_blank');}).catch(()=>window.open(url,'_blank'));}
+  else{window.open(url,'_blank');}
+}
+/* In server mode send job links to the default browser (on a hosted copy: a new tab). */
+document.addEventListener('click',e=>{
+  if(!serverMode)return;
+  const a=e.target.closest('a[href^="http"]');
+  if(!a)return;
+  e.preventDefault();openExternal(a.href);
+});
+
+/* ---------- File System Access: durable, portable storage ---------- */
+const supportsFS = 'showOpenFilePicker' in window;
+const FT=[{description:'Tracker data (JSON)',accept:{'application/json':['.json']}}];
+let fileHandle=null, usingFile=false, writing=false, pendingWrite=false, toastT=null;
+
+function idb(){return new Promise((res,rej)=>{const r=indexedDB.open('launchpad_fs',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
+async function idbSet(k,v){const db=await idb();return new Promise((res,rej)=>{const t=db.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=()=>res();t.onerror=()=>rej(t.error);});}
+async function idbGet(k){const db=await idb();return new Promise((res,rej)=>{const t=db.transaction('kv','readonly');const q=t.objectStore('kv').get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error);});}
+async function idbDel(k){const db=await idb();return new Promise((res)=>{const t=db.transaction('kv','readwrite');t.objectStore('kv').delete(k);t.oncomplete=()=>res();});}
+
+function toast(msg,ms){let t=document.getElementById('toast');if(!t){t=document.createElement('div');t.id='toast';document.body.appendChild(t);}t.textContent=msg;t.className='show';clearTimeout(toastT);toastT=setTimeout(()=>t.className='',ms||2800);}
+
+async function useHandle(h){fileHandle=h;usingFile=true;try{await idbSet('handle',h);}catch(e){}updateFileStatus();}
+async function loadFromFile(){const f=await fileHandle.getFile();const txt=await f.text();
+  if(txt.trim()){const data=JSON.parse(txt);if(Array.isArray(data)){state.apps=data;state.apps.forEach(a=>{if(!a.id)a.id=uid();});cacheLocal();}}
+  stamp();updateFileStatus();}
+async function writeToFile(){if(!fileHandle)return;const w=await fileHandle.createWritable();await w.write(JSON.stringify(state.apps,null,2));await w.close();stamp();updateFileStatus();}
+async function persistFile(){if(!usingFile||!fileHandle)return;if(writing){pendingWrite=true;return;}writing=true;
+  try{await writeToFile();}catch(e){usingFile=false;updateFileStatus();alert('Lost write access to the data file (permission may have been revoked). Switched to browser storage — use “Open file” to relink.');}
+  writing=false;if(pendingWrite){pendingWrite=false;persistFile();}}
+
+async function linkOpen(){try{const [h]=await window.showOpenFilePicker({types:FT,multiple:false});await useHandle(h);await loadFromFile();render();toast('Linked '+h.name+' — changes now save to this file.');}catch(e){if(e.name!=='AbortError')alert('Could not open file: '+e.message);}}
+async function linkNew(){try{const h=await window.showSaveFilePicker({suggestedName:'launchpad-data.json',types:FT});await useHandle(h);await writeToFile();render();toast('Created '+h.name+' — changes now save to this file.');}catch(e){if(e.name!=='AbortError')alert('Could not create file: '+e.message);}}
+async function unlinkFile(){const n=fileHandle&&fileHandle.name;usingFile=false;fileHandle=null;try{await idbDel('handle');}catch(e){}updateFileStatus();stamp();toast((n||'File')+' unlinked — now using browser storage.');}
+async function reconnect(){if(!fileHandle)return;let p='denied';try{p=await fileHandle.requestPermission({mode:'readwrite'});}catch(e){}
+  if(p==='granted'){usingFile=true;try{await loadFromFile();render();toast('Reconnected '+fileHandle.name+'.');}catch(e){usingFile=false;}updateFileStatus();}
+  else{alert('Permission denied — staying on browser storage.');}}
+
+function updateFileStatus(mode){
+  const chip=document.getElementById('filestat');if(!chip)return;
+  const bOpen=document.getElementById('btnOpen'),bSave=document.getElementById('btnSaveAs'),bRe=document.getElementById('btnReconnect'),bUn=document.getElementById('btnUnlink');
+  if(serverMode){chip.textContent='data.json · synced with the server';chip.className='filechip ok';
+    bOpen.style.display='none';bSave.style.display='none';bRe.style.display='none';bUn.style.display='none';return;}
+  if(supportsFS){bOpen.style.display='';bSave.style.display='';}
+  bRe.style.display='none';bUn.style.display='none';
+  if(!supportsFS){chip.textContent='Browser storage (this browser only)';chip.className='filechip';return;}
+  if(usingFile&&fileHandle){chip.textContent=fileHandle.name+' · file-synced';chip.className='filechip ok';bUn.style.display='';}
+  else if(mode==='needs'&&fileHandle){chip.textContent=fileHandle.name+' · needs reconnect';chip.className='filechip warn';bRe.style.display='';bRe.textContent='Reconnect '+fileHandle.name;}
+  else{chip.textContent='Browser storage — not linked';chip.className='filechip';}
+}
+async function initFileSync(){
+  if(!supportsFS){updateFileStatus();return;}
+  let h=null;try{h=await idbGet('handle');}catch(e){}
+  if(!h){updateFileStatus();return;}
+  fileHandle=h;
+  let perm='prompt';try{perm=await h.queryPermission({mode:'readwrite'});}catch(e){}
+  if(perm==='granted'){usingFile=true;try{await loadFromFile();render();}catch(e){usingFile=false;}updateFileStatus();}
+  else{updateFileStatus('needs');}
+}
+
+function esc(s){return (s||'').replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));}
+function pill(s){return `<span class="pill t-${TONE[s]||'grey'}">${esc(s)}</span>`;}
+function stageOf(s){for(const st of STAGES){if(st.match.includes(s))return st.key;}return 'Screening';}
+function dueClass(d){return d&&d<=today?'due':'';}
+
+// One switch for the screen and, on Jobs and People, one for the layout (Board | Table).
+const SCREENS={
+  move:['Today','What needs you, most urgent first.'],
+  jobs:['Jobs','Every role you are tracking, from first look to offer.'],
+  people:['People','Who can refer you, and where each conversation stands.'],
+  companies:['Companies','Each company with its roles, its people and the next step.'],
+  interviews:['Interviews','Rounds coming up, rounds to schedule, and how past ones went.'],
+  insights:['Insights','']};
+const NAV=[['dm','move'],['dj','jobs'],['dp','people'],['dc','companies'],['dv','interviews'],['di','insights']];
+function applyChrome(){const P=dataset==='people',J=dataset==='jobs',C=dataset==='companies';
+  NAV.forEach(([id,d])=>{const b=document.getElementById(id);b.classList.toggle('on',dataset===d);if(dataset===d)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
+  document.getElementById('ptitle').textContent=SCREENS[dataset][0];
+  document.getElementById('psub').textContent=SCREENS[dataset][1];
+  document.title=SCREENS[dataset][0]+' · LaunchPad';
+  const show=(id,on)=>document.getElementById(id).classList.toggle('hidden',!on);
+  show('ymove',dataset==='move');show('insights',dataset==='insights');show('companies',C);show('interviews',dataset==='interviews');
+  show('board',J&&view==='board');show('table',J&&view==='table');show('people',P);
+  // Search works on Jobs, People and the Companies list; the other screens are plain pages.
+  document.getElementById('controls').style.display=(J||P||(C&&!companyOpen))?'':'none';
+  document.getElementById('viewseg').style.display=(J||P)?'':'none';
+  document.getElementById('vb').classList.toggle('on',view==='board');document.getElementById('vt').classList.toggle('on',view==='table');
+  const showCols=J&&view==='board';const cw=document.getElementById('colwrap');if(cw){cw.style.display=showCols?'':'none';if(!showCols)document.getElementById('colmenu').classList.remove('show');}
+  // Job-only controls act on data.json, so they're hidden elsewhere (People has its own stat cards).
+  ['kpis','sf','lblHide'].forEach(id=>{document.getElementById(id).style.display=J?'':'none';});
+  // Add belongs to the two boards and Interviews; elsewhere `n` and the palette still add a job.
+  const add=document.getElementById('btnAdd');add.textContent=P?'+ Add person':dataset==='interviews'?'+ Add interview':'+ Add job';add.style.display=(J||P||dataset==='interviews')?'':'none';
+  document.getElementById('q').placeholder=P?'Search people…':C?'Search companies…':'Search company, role, notes…';
+  if(!P){stamp();updateFileStatus();}
+  writeHash();}
+// The URL remembers the screen and its layout (#jobs, #people/table, #companies/<name>…),
+// so a refresh, bookmark or new tab opens the same screen. With no hash the tracker opens on Today.
+function readHash(){const raw=location.hash.slice(1),i=raw.indexOf('/'),d=i<0?raw:raw.slice(0,i),v=i<0?'':raw.slice(i+1);
+  dataset=SCREENS[d]?d:(raw?'jobs':'move');companyOpen='';
+  if(dataset==='companies'){try{companyOpen=decodeURIComponent(v);}catch(e){}}
+  else view=v==='table'?'table':'board';}
+function writeHash(){const tail=dataset==='companies'?(companyOpen?'/'+encodeURIComponent(companyOpen):''):(view==='table'&&(dataset==='jobs'||dataset==='people')?'/table':'');
+  const h='#'+dataset+tail;if(location.hash!==h)history.replaceState(null,'',h);}
+window.addEventListener('hashchange',()=>{const d=dataset;readHash();const nd=dataset;dataset=d;if(nd!==d)setDataset(nd,true);else{applyChrome();render();}});
+function setView(v){view=v;applyChrome();render();}
+// Each screen keeps its own search text, so a jobs search doesn't silently filter people.
+const searchByDataset={};
+function setDataset(d,keepCompany){const q=document.getElementById('q');searchByDataset[dataset]=q.value;if(!keepCompany)companyOpen='';dataset=d;q.value=searchByDataset[d]||'';applyChrome();render();window.scrollTo(0,0);}
+function addClicked(){if(dataset==='people'&&window.People)People.openAdd();else if(dataset==='interviews'&&window.Screens)Screens.addInterview();else openEdit(null);}
+
+function initFilters(){const sel=document.getElementById('sf');const cur=sel.value;
+  sel.innerHTML='<option value="">All statuses</option>'+ALL_STATUSES.map(s=>`<option ${s===cur?'selected':''}>${s}</option>`).join('');}
+
+function visible(list){const q=document.getElementById('q').value.toLowerCase();const sf=document.getElementById('sf').value;const hide=document.getElementById('sc').checked;
+  return list.filter(a=>{
+    if(hide&&HIDDEN.includes(a.status))return false;
+    if(sf&&a.status!==sf)return false;
+    if(q&&!(`${a.company} ${a.role} ${a.notes}`.toLowerCase().includes(q)))return false;
+    return true;});}
+
+function kpis(list){const c=s=>list.filter(a=>a.status===s).length;
+  const screening=c('Screening')+c('Researching');
+  const toapply=c('To Apply');
+  const applied=['Applied','Phone Screen','Interviewing','Take-home','Final Round','Offer','Accepted'].reduce((n,s)=>n+c(s),0);
+  const inproc=c('Phone Screen')+c('Interviewing')+c('Take-home')+c('Final Round');
+  const offers=c('Offer')+c('Accepted');
+  const due=list.filter(a=>a.nextFollowup&&a.nextFollowup<=today&&!HIDDEN.includes(a.status)&&a.status!=='Accepted').length;
+  const k=[['Tracked',list.length],['Screening',screening],['To apply',toapply],['Applied',applied],['In process',inproc],['Offers',offers],['Follow-ups due',due]];
+  document.getElementById('kpis').innerHTML=k.map(x=>`<div class="kpi"><div class="n">${x[1]}</div><div class="l">${x[0]}</div></div>`).join('');}
+
+
+const TIER_TITLE={A:'Tier A — primary fit',B:'Tier B — stretch (flagged)',C:'Tier C — strong IC target'};
+function tierOf(a){return a.tier||((/Tier\s*([ABC])\b/.exec(a.notes||'')||[])[1]||'');}
+function tierBadge(a){const t=tierOf(a);return t?`<span class="tierb tier-${t}" title="${TIER_TITLE[t]}">Tier ${t}</span>`:'';}
+/* ---------- "Your move" (rules in your-move.js) ---------- */
+function ymContacts(){return window.People&&People.list?People.list():[];}
+function ymDays(){return window.People&&People.followupDays?People.followupDays():6;}
+function ymJob(a){return window.YourMove?YourMove.forJob(a,ymContacts(),today,ymDays(),window.AUTOPILOT):null;}
+/* Autopilot switches (Data/autopilot.json via the server). Off until you switch them on. */
+window.AUTOPILOT=null;let apRevision='';
+async function loadAutopilot(){try{const r=await fetch('autopilot.json',{cache:'no-store'});if(!r.ok)return;
+  window.AUTOPILOT=await r.json();apRevision=r.headers.get('X-Autopilot-Revision')||'';render();}catch(e){}}
+async function saveAutopilot(){if(!serverMode||!window.AUTOPILOT)return;
+  try{const r=await fetch('save-autopilot',{method:'POST',headers:{'Content-Type':'application/json','X-Base-Revision':apRevision},body:JSON.stringify(window.AUTOPILOT)});
+    const j=await r.json().catch(()=>({}));
+    if(r.status===409){await loadAutopilot();toast('Autopilot settings changed elsewhere — reloaded. Please redo your change.');return;}
+    if(!r.ok)throw new Error(j.error||('HTTP '+r.status));
+    if(j.revision)apRevision=j.revision;if(j.autopilot)window.AUTOPILOT=j.autopilot;
+    toast('Autopilot saved');}
+  catch(e){toast('⚠ Could not save autopilot: '+e.message);}
+  render();}
+function autopilotCard(){const ap=YourMove.autopilot(window.AUTOPILOT),dis=serverMode&&window.AUTOPILOT?'':' disabled';
+  const tier=t=>`<label class="aptier"><input type="checkbox" data-ap="tier" value="${t}"${ap.jobs.tiers.includes(t)?' checked':''}${dis}> ${t}</label>`;
+  return `<section class="ymsec apcard"><h3>Autopilot <span class="apsub">${dis?'needs the tracker server':'fewer approvals: decide the rule once, veto exceptions'}</span></h3>
+  <div class="aprow"><label class="apsw"><input type="checkbox" data-ap="jobs"${ap.jobs.enabled?' checked':''}${dis}><span></span></label>
+    <div><strong>Jobs</strong> — approve Screening roles with fit ≥ <input type="number" min="50" max="100" step="5" data-ap="minFit" value="${ap.jobs.minFit}"${dis}> in tier ${tier('A')}${tier('B')}${tier('C')}
+    <div class="apsub">The next run moves them to To Apply and connects with their people. They show here for a day so you can undo.</div></div></div>
+  <div class="aprow"><label class="apsw"><input type="checkbox" data-ap="messages"${ap.messages.enabled?' checked':''}${dis}><span></span></label>
+    <div><strong>Messages</strong> — send drafted asks and follow-ups automatically <input type="number" min="0" max="72" step="1" data-ap="holdHours" value="${ap.messages.holdHours}"${dis}> h after they're drafted
+    <div class="apsub">Read them whenever you like; tick <em>Hold</em> on a person to stop one. Replies to people who answered and emails still wait for you.</div></div></div>
+  </section>`;}
+document.addEventListener('change',e=>{const t=e.target.closest&&e.target.closest('[data-ap]');if(!t||!window.AUTOPILOT)return;
+  const ap=window.AUTOPILOT=YourMove.autopilot(window.AUTOPILOT),k=t.dataset.ap;
+  if(k==='jobs')ap.jobs.enabled=t.checked;
+  else if(k==='messages')ap.messages.enabled=t.checked;
+  else if(k==='minFit')ap.jobs.minFit=Math.max(50,Math.min(100,parseInt(t.value)||80));
+  else if(k==='holdHours')ap.messages.holdHours=Math.max(0,Math.min(72,parseInt(t.value)||0));
+  else if(k==='tier')ap.jobs.tiers=['A','B','C'].filter(x=>x===t.value?t.checked:ap.jobs.tiers.includes(x));
+  saveAutopilot();});
+/* Bulk review: one list, one click, instead of approving cards one by one. */
+let ymOpen='';
+function bulkJobs(){return state.apps.filter(a=>(a.status==='Screening'||a.status==='Researching')&&!YourMove.autoApproveJob(a,window.AUTOPILOT))
+  .sort((x,y)=>(parseInt(y.fitScore)||0)-(parseInt(x.fitScore)||0));}
+function bulkMsgs(){return ymContacts().filter(c=>{const m=YourMove.forContact(c,state.apps,window.AUTOPILOT);return m&&m.verb==='Approve message';});}
+function bulkPanel(kind){
+  if(kind==='jobs'){const js=bulkJobs(),cs=ymContacts();
+    const rows=js.map(a=>{const n=cs.filter(c=>(c.stage==='Found'||c.stage==='Queued')&&((c.appIds||[]).includes(a.id)||(!(c.appIds||[]).length&&c.company===a.company))).length;
+      const pre=(parseInt(a.fitScore)||0)>=80||/recommended/i.test(a.notes||'');
+      return `<label class="bkrow"><input type="checkbox" data-bk="${a.id}"${pre?' checked':''}><span class="bkmain"><strong>${esc(a.company)}</strong> — ${esc(a.role)} ${tierBadge(a)}
+        <span class="bksub">fit ${esc(a.fitScore||'?')} · ${esc(a.location||'')}${n?' · '+n+' to connect':''}${/recommended/i.test(a.notes||'')?' · recommended':''}</span></span></label>`;}).join('');
+    return `<div class="bkpanel" data-kind="jobs"><div class="bkbar"><span class="bkall" data-bkall="1">Select all</span> · <span class="bkall" data-bkall="0">none</span></div>${rows}
+      <div class="bkbtns"><span class="minibtn go" data-bkdo="approve">✓ Approve selected → To Apply</span><span class="minibtn" data-bkdo="drop">✗ Drop selected</span></div></div>`;}
+  const ms=bulkMsgs();
+  const rows=ms.map(c=>`<label class="bkrow"><input type="checkbox" data-bk="${esc(c.id)}" checked><span class="bkmain"><strong>${esc(c.name)}</strong> · ${esc(c.company)} <span class="bksub">${esc(c.relation||'')}</span>
+    <span class="bkmsg">${esc(c.askMessage)}</span></span></label>`).join('');
+  return `<div class="bkpanel" data-kind="msgs"><div class="bkbar"><span class="bkall" data-bkall="1">Select all</span> · <span class="bkall" data-bkall="0">none</span> · untick any you want to hold back</div>${rows}
+    <div class="bkbtns"><span class="minibtn go" data-bkdo="approve">✓ Approve selected messages</span></div></div>`;}
+function bulkDo(panel,action){const ids=[...panel.querySelectorAll('[data-bk]:checked')].map(x=>x.dataset.bk);
+  if(!ids.length){toast('Nothing selected');return;}
+  if(panel.dataset.kind==='jobs'){const to=action==='approve'?'To Apply':"Won't Apply";
+    ids.forEach(id=>{const a=state.apps.find(x=>x.id===id);if(a){a.status=to;stampApplied(a);stampClosed(a);}});
+    save();ymOpen='';render();
+    toast(ids.length+(ids.length===1?' role':' roles')+' → '+to+(to==='To Apply'?' · their people get connection requests on the next run':''));return;}
+  let n=0;ymContacts().forEach(c=>{if(ids.includes(c.id)&&window.PeopleCore&&PeopleCore.canApproveAsk(c)){c.askApproved=true;n++;}});
+  if(window.People&&People.commit)People.commit();ymOpen='';render();
+  toast(n+(n===1?' message':' messages')+' approved · they go out on the next run');}
+document.addEventListener('click',e=>{const t=e.target;if(!t.closest)return;
+  const open=t.closest('[data-bkopen]');if(open){e.stopPropagation();ymOpen=ymOpen===open.dataset.bkopen?'':open.dataset.bkopen;renderYourMove();return;}
+  const all=t.closest('[data-bkall]');if(all){all.closest('.bkpanel').querySelectorAll('[data-bk]').forEach(x=>x.checked=all.dataset.bkall==='1');return;}
+  const d=t.closest('[data-bkdo]');if(d)bulkDo(d.closest('.bkpanel'),d.dataset.bkdo);},true);
+function ymChip(m){if(!m)return '';return `<span class="ym ym-${m.level}" title="${esc(m.why)}">${esc(m.verb)}</span>`;}
+// Count badge on the Today button (red + amber items only).
+function ymCounts(){if(!window.YourMove)return;
+  const s=YourMove.summary(state.apps,ymContacts(),today,ymDays(),window.AUTOPILOT);
+  document.getElementById('dmn').textContent=s.count||''; // one per line on the screen, so grouped outreach counts once
+}
+// The "Your move" tab: everything that needs you, grouped by urgency. Rules live in your-move.js.
+function renderYourMove(){const el=document.getElementById('ymove');if(!el||!window.YourMove)return;
+  const cs=ymContacts();
+  const s=YourMove.summary(state.apps,cs,today,ymDays(),window.AUTOPILOT);
+  const byCo=verb=>{const m={};cs.forEach(c=>{const x=YourMove.forContact(c,state.apps,window.AUTOPILOT);if(x&&x.verb===verb)m[c.company]=(m[c.company]||0)+1;});
+    return Object.keys(m).sort((a,b)=>m[b]-m[a]).map(k=>k+' '+m[k]).join(' · ');};
+  const waitJobs=state.apps.map(a=>({a,m:ymJob(a)})).filter(x=>x.m&&x.m.level==='wait');
+  const groups=[['red','Overdue'],['amber','Needs you'],['grey','When you have a minute']];
+  const line=(l,i)=>{let sub=l.sub;
+    if(l.target.type==='people'&&/Approve outreach/.test(l.text)){const m=byCo('Approve message');
+      sub+=(m?' · '+m:'');}
+    const bk=l.target.type==='screening'?'jobs':l.target.type==='people'&&/Approve outreach/.test(l.text)?'msgs':'';
+    return `<div class="ymline ymline-${l.level}" data-ym="${i}"><span class="ymtext"><strong>${esc(l.text)}</strong><span class="ymsub">${esc(sub)}</span></span>`+
+      (bk?`<span class="minibtn go" data-bkopen="${bk}">${ymOpen===bk?'Close':'Review all'}</span>`:'')+`<span class="ymgo">→</span></div>`+
+      (bk&&ymOpen===bk?bulkPanel(bk):'');};
+  let h='';
+  if(!s.lines.length)h+=`<div class="ymempty">Nothing needs you right now.</div>`;
+  groups.forEach(([lv,title])=>{const ls=s.lines.map((l,i)=>[l,i]).filter(([l])=>l.level===lv);
+    if(ls.length)h+=`<section class="ymsec"><h3><i class="dot ${lv}"></i>${title} <span class="ct">${ls.length}</span></h3>${ls.map(([l,i])=>line(l,i)).join('')}</section>`;});
+  if(waitJobs.length||s.waiting){
+    h+=`<section class="ymsec ymsec-wait"><h3><i class="dot wait"></i>Waiting on others</h3>`+
+      (s.waiting?`<div class="ymwait">${esc(s.waiting)}</div>`:'')+
+      waitJobs.map(({a,m})=>`<div class="ymline ymline-wait" data-job="${a.id}"><span class="ymtext"><strong>${esc(a.company)} — ${esc(a.role)}</strong><span class="ymsub">${esc(m.verb)} · ${esc(m.why)}</span></span><span class="ymgo">→</span></div>`).join('')+
+      `</section>`;}
+  const n=s.count,day=new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
+  const hero=`<div class="hero"><div class="big${n?'':' zero'}">${n}</div><div><div class="hl">${n===1?'thing needs you':'things need you'}</div><div class="hs">${esc(day)}. Click a line to go to it, or <strong>Review all</strong> to approve a whole batch at once. Approving a job connects with its people automatically on the next run.</div></div></div>`;
+  el.innerHTML=`<div class="ympage">${hero}${h}${autopilotCard()}</div>`;
+  el.querySelectorAll('[data-ym]').forEach(n=>n.addEventListener('click',()=>ymGo(s.lines[+n.dataset.ym].target)));
+  el.querySelectorAll('[data-job]').forEach(n=>n.addEventListener('click',()=>ymGo({type:'job',id:n.dataset.job})));}
+function ymGo(tg){
+  if(tg.type==='people'){setDataset('people');return;}
+  if(dataset!=='jobs')setDataset('jobs');
+  if(tg.type==='autoapproved'){document.getElementById('sf').value='';document.getElementById('q').value='autopilot';if(view!=='board')setView('board');else render();return;}
+  if(tg.type==='autoclosed'){document.getElementById('sf').value='';document.getElementById('sc').checked=false;document.getElementById('q').value='auto-closed';if(view!=='board')setView('board');else render();return;}
+  if(tg.type==='screening'){document.getElementById('sf').value='Screening';if(view!=='board')setView('board');else render();return;}
+  if(tg.type==='job'){document.getElementById('sf').value='';document.getElementById('q').value='';
+    const a=state.apps.find(x=>x.id===tg.id);if(a){const st=stageOf(a.status);collapsedCols.delete(st);hiddenCols.delete(st);}
+    if(view!=='board')setView('board');else render();
+    const el=document.querySelector(`.cardx[data-id="${tg.id}"]`);if(el)el.scrollIntoView({block:'center',inline:'center'});
+    if(window.Screens)Screens.openJob(tg.id);}}
+/* Why a role scored what it did: six parts, 0-5 each, written by the search skills into
+   fitBreakdown. Shown only when a card has them; fitScore stays the overall judgment. */
+const FIT_PARTS=[['role','Role','The day-to-day work against your target titles'],['skills','Skills','Must-have skills your resume covers'],
+  ['level','Level','Seniority and years asked against yours'],['pay','Pay','Stated pay against your floor (3 = not stated)'],
+  ['location','Location','Arrangement and location against your thesis'],['posting','Posting','Is it real and fresh: date, requisition ID, reposts (3 = no signal)']];
+function fitParts(a){const b=a.fitBreakdown;if(!b||typeof b!=='object')return '';
+  const parts=FIT_PARTS.filter(([k])=>b[k]!==''&&b[k]!=null&&!isNaN(+b[k])).map(([k,l,t])=>{const n=Math.max(0,Math.min(5,+b[k]));
+    return `<span class="fitp fitp-${n>=4?'hi':n>=3?'mid':'lo'}" title="${esc(t)}">${l} ${n}</span>`;});
+  return parts.length?`<p class="fitrow"><span>Fit ${esc(String(a.fitScore||'?'))}, out of 5 each:</span>${parts.join('')}</p>`:'';}
+function fitCls(v){const n=parseInt(v)||0;return n>=85?'fit-hi':n>=70?'fit-mid':'fit-lo';}
+/* ---------- "Insights" (rules in insights.js) ---------- */
+function renderInsights(){const el=document.getElementById('insights');if(!el||!window.Insights)return;
+  const cfg=(window.People&&People.config&&People.config())||{};
+  const r=Insights.compute(state.apps,ymContacts(),today,{followupDays:ymDays(),staleInviteDays:cfg.staleInviteDays});
+  if(r.empty){el.innerHTML='<div class="inpage"><div class="ymempty">Nothing to measure yet. Add roles and people, and this page fills in.</div></div>';return;}
+  const rate=s=>s.rate==null?'':`<span class="rate"> · ${s.rate}% ${esc(s.of)}</span>`;
+  const funnel=(title,steps)=>{const max=Math.max(1,...steps.map(s=>s.count));
+    return `<div class="infunnel"><h4>${title}</h4>${steps.map(s=>`<div class="instep"><span>${esc(s.label)}${rate(s)}</span><span class="n">${s.count}</span><span class="bar"><i style="width:${Math.round(100*s.count/max)}%"></i></span></div>`).join('')}</div>`;};
+  const pc=(n,of,r)=>of?`${n} <span class="inlow">(${r}%)</span>`:'<span class="inlow">–</span>';
+  const table=(heads,rows)=>`<div class="intable"><table><thead><tr>${heads.map((h,i)=>`<th${i?' class="num"':''}>${h}</th>`).join('')}</tr></thead><tbody>${rows.map(c=>`<tr>${c.map((v,i)=>`<td${i?' class="num"':''}>${v}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  const m=r.medians,med=[m.toAccept!=null?`requests are accepted in a median of ${m.toAccept} day${m.toAccept===1?'':'s'}`:'',m.toReply!=null?`asks are answered in a median of ${m.toReply} day${m.toReply===1?'':'s'}`:''].filter(Boolean).join(' · ');
+  const stuck=r.stuck.filter(x=>x.count);
+  let h='<div class="inpage"><p class="ymintro">Where roles and outreach are getting through, and where they stall. Worked out from what is on the board now; archived cards and people are not counted.</p>';
+  h+=`<div class="innotes"><strong>What stands out</strong>${r.notes.length?`<ul>${r.notes.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>`:`<div class="apsub" style="margin-top:4px">${r.thin?'Not enough data yet for patterns. They start to show after a few weeks of applications and outreach.':'Nothing unusual in the numbers below.'}</div>`}</div>`;
+  h+=`<h3>Funnels</h3><div class="infunnels">${funnel('Roles',r.jobFunnel)}${funnel('Referral outreach',r.outreachFunnel)}</div>`+(med?`<p class="apsub" style="margin:8px 2px 0">${esc(med.charAt(0).toUpperCase()+med.slice(1))}.</p>`:'');
+  if(stuck.length)h+=`<h3>Sitting still</h3><div class="kpis">${stuck.map(x=>`<div class="kpi" title="${esc(x.detail)}"><div class="n">${x.count}</div><div class="l">${esc(x.label)}</div></div>`).join('')}</div>`;
+  if(r.byRelation.length)h+='<h3>Outreach by relation <span class="apsub">who accepts and who replies</span></h3>'+table(['Relation','People','Requests','Accepted','Asked','Replied','Referred'],
+    r.byRelation.map(x=>[esc(x.relation),x.people,x.requested,pc(x.accepted,x.requested,x.acceptRate),x.asked,pc(x.replied,x.asked,x.replyRate),x.referred]));
+  if(r.byTier.length)h+='<h3>Roles by tier</h3>'+table(['Tier','Roles','Average fit','Approved','Applied'],r.byTier.map(x=>[esc(x.tier),x.roles,x.avgFit==null?'<span class="inlow">–</span>':x.avgFit,x.approved,x.applied]));
+  if(r.bySource.length)h+='<h3>Roles by source <span class="apsub">where the roles you approve come from</span></h3>'+table(['Source','Roles','Approved','Applied','Interviewing'],r.bySource.slice(0,10).map(x=>[esc(x.source),x.roles,x.approved,x.applied,x.interview]));
+  el.innerHTML=h+'<p class="apsub" style="margin:14px 2px">Percentages on small counts move a lot; read the counts first.</p></div>';}
+function ageStr(d){if(!d)return '';const n=Math.round((Date.parse(today)-Date.parse(d))/86400000);
+  if(isNaN(n))return '';if(n<=0)return 'today';if(n===1)return 'yesterday';if(n<7)return n+' days ago';if(n<30)return Math.floor(n/7)+'w ago';if(n<365)return Math.floor(n/30)+'mo ago';return Math.floor(n/365)+'y ago';}
+function card(a){
+  return `<article class="cardx${window.Screens&&Screens.jobId()===a.id?' sel':''}" draggable="true" tabindex="0" data-id="${a.id}">
+      <div class="co">${tierBadge(a)}${esc(a.company)}</div>
+      <div class="ro">${esc(a.role)}</div>
+      <div class="meta">${ymChip(ymJob(a))}${a.fitScore?`<span class="fitb ${fitCls(a.fitScore)}" title="Fit score">Fit ${esc(String(a.fitScore))}</span>`:''}${a.arrangement?`<span>${esc(a.arrangement)}</span>`:''}${a.salary?`<span>${esc(a.salary)}</span>`:''}${a.nextFollowup?`<span class="${dueClass(a.nextFollowup)}">Follow up ${esc(a.nextFollowup)}</span>`:''}${a.excitement?`<span title="Excitement">★ ${esc(a.excitement)}</span>`:''}${docBadge(a)}${hasPrep(a)?'<span title="Interview prep ready">Prep ✓</span>':''}${a.dateAdded?`<span title="Added ${esc(a.dateAdded)}">${esc(ageStr(a.dateAdded))}</span>`:''}${window.People?People.badge(a):''}</div>
+  </article>`;}
+
+/* ---------- quick actions on job cards (no drag needed) ---------- */
+const NEXT_STAGE={'Applied':'Phone Screen','Phone Screen':'Interviewing','Take-home':'Final Round','Interviewing':'Final Round','Final Round':'Offer','Offer':'Accepted'};
+function quickActions(a){const b=(s,label,cls)=>`<span class="minibtn${cls?' '+cls:''}" data-quick="${esc(s)}" data-id="${a.id}">${label}</span>`;
+  if(a.status==='Screening'||a.status==='Researching')return b('To Apply','✓ Approve → To Apply','go')+b("Won't Apply",'✗ Drop');
+  if(a.status==='To Apply')return b('Applied','✓ Mark applied','go')+b("Won't Apply",'✗ Drop');
+  if(NEXT_STAGE[a.status])return b(NEXT_STAGE[a.status],'→ '+esc(NEXT_STAGE[a.status]),'go')+(['Applied','Phone Screen','Interviewing','Take-home','Final Round'].includes(a.status)?b('Rejected','✗ Rejected'):'');
+  return '';}
+function quickMove(id,status){const a=state.apps.find(x=>x.id===id);if(!a||!status||a.status===status)return;
+  a.status=status;stampApplied(a);stampClosed(a);save();render();
+  const n=status==='To Apply'?ymContacts().filter(c=>(c.stage==='Found'||c.stage==='Queued')&&YourMove.jobApproved(c,state.apps)).filter(c=>(c.appIds||[]).includes(a.id)||(!(c.appIds||[]).length&&c.company===a.company)).length:0;
+  toast(a.company+' → '+status+(n?' · '+n+(n===1?' person':' people')+' will be connected on the next run':'')+(HIDDEN.includes(status)&&document.getElementById('sc').checked?' (hidden: closed cards are filtered out)':''));}
+document.addEventListener('click',e=>{const q=e.target.closest&&e.target.closest('[data-quick]');if(q){e.preventDefault();quickMove(q.dataset.id,q.dataset.quick);}});
+document.addEventListener('change',e=>{const s=e.target.closest&&e.target.closest('[data-movejob]');if(s&&s.value)quickMove(s.dataset.movejob,s.value);});
+function renderBoard(list){const hide=document.getElementById('sc').checked;
+  const stages=STAGES.filter(s=>!(s.hide&&hide)).filter(s=>!hiddenCols.has(s.key));
+  document.getElementById('board').innerHTML=stages.map(s=>{
+    const items=list.filter(a=>stageOf(a.status)===s.key);
+    if(s.key==='Screening')items.sort((x,y)=>(parseInt(y.fitScore)||0)-(parseInt(x.fitScore)||0));
+    const collapsed=collapsedCols.has(s.key);
+    const chev=collapsed?'▸':'▾';
+    const body=collapsed?'':(items.map(card).join('')||'<div class="drophint">drop here</div>');
+    return `<div class="col${collapsed?' collapsed':''}" data-col="${esc(s.key)}"><h2><button class="coltog" type="button" title="${collapsed?'Expand':'Collapse'} column">${chev}</button><span class="colname">${esc(s.key)}</span>${(n=>n?`<span class="ymct" title="${n} need you">${n} to do</span>`:'')(items.filter(a=>window.YourMove&&YourMove.needsYou(ymJob(a))).length)}<span class="ct">${items.length}</span></h2>${body}</div>`;
+  }).join('');
+  wireDnD();}
+
+function wireDnD(){
+  document.querySelectorAll('#board .cardx').forEach(el=>{
+    el.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',el.dataset.id);el.classList.add('drag');});
+    el.addEventListener('dragend',()=>el.classList.remove('drag'));
+    el.addEventListener('click',()=>Screens.openJob(el.dataset.id));
+    el.addEventListener('keydown',e=>{if(e.key==='Enter')Screens.openJob(el.dataset.id);});
+  });
+  document.querySelectorAll('.col').forEach(col=>{
+    col.addEventListener('dragover',e=>{e.preventDefault();col.classList.add('over');});
+    col.addEventListener('dragleave',()=>col.classList.remove('over'));
+    col.addEventListener('drop',e=>{e.preventDefault();col.classList.remove('over');
+      const id=e.dataTransfer.getData('text/plain');const st=STAGES.find(x=>x.key===col.dataset.col);
+      const a=state.apps.find(x=>x.id===id);
+      if(a&&st&&stageOf(a.status)!==st.key){a.status=st.primary;stampApplied(a);stampClosed(a);save();render();}
+    });
+    if(col.classList.contains('collapsed'))col.addEventListener('click',e=>{if(e.target.closest('.coltog'))return;toggleCollapse(col.dataset.col);});
+  });
+  document.querySelectorAll('.coltog').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();toggleCollapse(b.closest('.col').dataset.col);}));}
+
+function renderTable(list){
+  let items=visible(list);
+  if(sortKey){items=items.slice().sort((a,b)=>(((a[sortKey]||'')+'').toLowerCase()<((b[sortKey]||'')+'').toLowerCase()?-1:1)*sortDir);}
+  const cols=[['company','Company'],['role','Role'],['status','Status'],['tier','Tier'],['arrangement','Setup'],['salary','Salary'],['excitement','★'],['nextFollowup','Follow-up'],['dateApplied','Applied'],['source','Source']];
+  let h='<div class="tablewrap"><table><thead><tr>'+cols.map(c=>`<th onclick="sortBy('${c[0]}')">${c[1]}${sortKey===c[0]?(sortDir>0?' ▲':' ▼'):''}</th>`).join('')+'<th>Notes</th></tr></thead><tbody>';
+  items.forEach(a=>{
+    h+=`<tr class="clickable" onclick="Screens.openJob('${a.id}')">`+
+       `<td><strong>${esc(a.company)}</strong></td><td>${esc(a.role)}</td><td>${pill(a.status)}</td><td>${tierBadge(a).replace('tierb','tierb tierb-inline')}</td>`+
+       `<td>${esc(a.arrangement)}</td><td>${esc(a.salary)}</td><td>${esc(a.excitement)}</td>`+
+       `<td class="${dueClass(a.nextFollowup)}">${esc(a.nextFollowup)}</td><td>${esc(a.dateApplied)}</td><td>${esc(a.source)}</td>`+
+       `<td class="notes">${esc((a.notes||'').slice(0,140))}</td></tr>`;
+  });
+  h+='</tbody></table></div>';
+  document.getElementById('table').innerHTML=h;}
+
+function sortBy(k){if(sortKey===k)sortDir*=-1;else{sortKey=k;sortDir=1;}render();}
+
+function render(){
+  const list=visible(state.apps);
+  kpis(state.apps);
+  ymCounts();
+  if(dataset==='move')renderYourMove();
+  else if(dataset==='insights')renderInsights();
+  else if(dataset==='companies'){if(window.Screens)Screens.renderCompanies();}
+  else if(dataset==='interviews'){if(window.Screens)Screens.renderInterviews();}
+  else if(dataset==='people'){if(window.People)People.view(view);}
+  else if(view==='board')renderBoard(list); else renderTable(state.apps);
+  if(window.Screens)Screens.refresh(); // keeps an open job or person panel in step with the data
+}
+
+/* ---------- documents (written by Claude, surfaced here) ---------- */
+/* The app does not generate anything. Applications use the base resume set in
+   outreach-config.json (baseResumePath) unless a card has a tailored one. A Claude
+   run drafts a per-role referral note for each To Apply card into referralMD
+   (plus Applications/<Company>/… .md), and stamps the outcome into notes as
+   [docs: generated …] or [docs: skipped … — reason]. resumeMD/coverMD/…Link hold
+   tailored docs (written by generate-docs, or added by hand); prepMD holds the
+   interview-prep skill's document. */
+function baseResume(){return (window.People&&People.baseResume&&People.baseResume())||'';}
+function hasPrep(a){return !!(a.prepMD||a.prepLink);}
+function prepSection(a){return hasPrep(a)?`<div class="docs">${docLink(a,'prep')}</div>`:'';}
+function hasDocs(a){return !!(a.referralMD||a.resumeMD||a.coverMD||a.resumeLink||a.coverLink);}
+function docMarkers(a){const n=a.notes||'';
+  return {gen:/\[docs: generated (\d{4}-\d{2}-\d{2})/.exec(n),
+          skip:/\[docs: skipped (\d{4}-\d{2}-\d{2})\s*[—–-]+\s*([^\]]*)\]/.exec(n)};}
+function cleanNotes(n){return (n||'').replace(/\s*\[docs:[^\]]*\]/g,'').trim();}
+function docBadge(a){
+  if(hasDocs(a))return '<span class="okc" title="Referral note ready · applying with the base resume">Docs ✓</span>';
+  const m=docMarkers(a);
+  if(m.skip)return '<span class="warnc" title="Doc generation skipped — open the job for the reason">Docs skipped</span>';
+  if(a.status==='To Apply')return '<span title="Base resume ready · the daily run will draft the referral note">Docs pending</span>';
+  return '';}
+function docsSection(a){
+  const m=docMarkers(a);
+  if(hasDocs(a)){
+    const note=m.gen?`<div class="docstat ok">✓ Docs ready ${esc(m.gen[1])} — referral note to share once someone agrees to refer</div>`:'';
+    return `<div class="docs">${docLinks(a)}</div>${note}`;}
+  if(m.skip)return `<div class="docstat warn">⚠ Docs skipped ${esc(m.skip[1])} — ${esc(m.skip[2]||'see notes')}<span class="minibtn" onclick="retryDocs('${a.id}')">Retry</span></div>`;
+  if(a.status==='To Apply')return `<div class="docstat">Base resume · the referral note is drafted automatically on the next daily run</div>`;
+  return '';}
+function retryDocs(id){const a=state.apps.find(x=>x.id===id);if(!a)return;
+  a.notes=cleanNotes(a.notes);
+  save();render();toast('Retry queued — the next daily run will redraft docs for '+a.company+'.');}
+const DOC_KIND={resume:{md:'resumeMD',link:'resumeLink',path:'resumePath',label:'Résumé',kind:'Resume',folder:'Resume/Tailored'},
+  cover:{md:'coverMD',link:'coverLink',path:'coverPath',label:'Cover letter',kind:'Cover Letter',folder:'Cover Letters/Tailored'},
+  referral:{md:'referralMD',link:'referralLink',path:'referralPath',label:'Referral note',kind:'Referral Note',folder:'Applications'},
+  prep:{md:'prepMD',link:'prepLink',path:'prepPath',label:'Interview prep',kind:'Interview Prep',folder:'Interview Prep'}};
+function docLinks(a){
+  const br=baseResume();
+  const base=(a.resumeMD||a.resumeLink)?'':`<span class="minibtn" title="${esc(br||'Set baseResumePath in outreach-config.json')}" ${br&&serverMode&&localServer?'onclick="revealPath(baseResume())"':''}>Base resume</span>`;
+  return base+docLink(a,'resume')+docLink(a,'referral')+docLink(a,'cover');}
+function docLink(a,which){
+  const k=DOC_KIND[which];
+  const ext=a[k.link];
+  const md=a[k.md];
+  const label=k.label;
+  if(md){let h=`<span class="minibtn" onclick="openDoc('${a.id}','${which}')" title="View Claude-written draft">${label}</span>`;
+    if(serverMode&&localServer)h+=`<span class="minibtn" onclick="revealDoc('${a.id}','${which}')" title="Show the file in your file manager — drag it straight into the application">Show file</span>`;
+    else h+=`<span class="minibtn" onclick="downloadDoc('${a.id}','${which}')" title="Download .md">Download</span>`;
+    return h;}
+  if(ext)return `<a class="btnlink" href="${esc(ext)}" target="_blank" rel="noopener">${label} ↗</a>`;
+  return '';
+}
+function revealDoc(id,which){const a=state.apps.find(x=>x.id===id);if(!a)return;
+  const k=DOC_KIND[which];
+  const name=((a.company||'')+' - '+(a.role||'')+' - '+k.kind+'.docx').replace(/[\/:]/g,'');
+  revealPath(a[k.path]||(k.folder+'/'+name));
+}
+function revealPath(path){
+  fetch('reveal?path='+encodeURIComponent(path))
+    .then(r=>r.json())
+    .then(j=>{if(!j.ok)toast('⚠ '+(j.error||'Could not reveal file'));else if(j.note)toast(j.note);})
+    .catch(()=>toast('⚠ Could not reach the tracker server.'));
+}
+function mdToHtml(md){
+  const lines=(md||'').split('\n');let html='',inUl=false;
+  const inline=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+  const closeUl=()=>{if(inUl){html+='</ul>';inUl=false;}};
+  for(const raw of lines){const l=raw.trim();
+    if(!l){closeUl();continue;}
+    if(l.startsWith('### ')){closeUl();html+='<h3>'+inline(l.slice(4))+'</h3>';}
+    else if(l.startsWith('## ')){closeUl();html+='<h2>'+inline(l.slice(3))+'</h2>';}
+    else if(l.startsWith('# ')){closeUl();html+='<h1>'+inline(l.slice(2))+'</h1>';}
+    else if(l.startsWith('> ')){closeUl();html+='<p class="muted">'+inline(l.slice(2))+'</p>';}
+    else if(l.startsWith('- ')){if(!inUl){html+='<ul>';inUl=true;}html+='<li>'+inline(l.slice(2))+'</li>';}
+    else{closeUl();html+='<p>'+inline(l)+'</p>';}}
+  closeUl();return html;
+}
+function openDoc(id,which){const a=state.apps.find(x=>x.id===id);if(!a)return;
+  const k=DOC_KIND[which];
+  const md=a[k.md];
+  const ext=a[k.link];
+  if(!md){if(ext){openExternal(ext);return;}alert('No '+k.kind.toLowerCase()+' yet — the daily run drafts it for To Apply roles.');return;}
+  const title=k.kind+' — '+a.company;
+  const w=window.open('','_blank');if(!w){alert('Pop-up blocked — allow pop-ups to view documents.');return;}
+  w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>'+esc(title)+'</title>'+
+   '<style>body{font-family:Georgia,"Times New Roman",serif;max-width:740px;margin:40px auto;padding:0 24px;color:#222;line-height:1.5}'+
+   'h1{font-size:24px;margin:0 0 2px}h2{font-size:15px;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid #ccc;padding-bottom:3px;margin:20px 0 8px;color:#191917}'+
+   'h3{font-size:14px;margin:12px 0 2px}ul{margin:4px 0 10px;padding-left:20px}li{margin:3px 0}p{margin:6px 0}.muted{color:#777;font-style:italic}'+
+   '.bar{position:fixed;top:0;left:0;right:0;background:#191917;color:#fff;padding:8px 16px;font-family:system-ui,sans-serif;font-size:13px;display:flex;gap:12px;align-items:center}'+
+   '.bar button{background:#fff;color:#191917;border:0;border-radius:6px;padding:5px 12px;cursor:pointer}@media print{.bar{display:none}body{margin:0}}</style></head>'+
+   '<body><div class="bar">'+(which==='prep'?'Claude-written prep — check the facts against your resume.':'Claude-written draft — review before sending.')+' <button onclick="window.print()">Print / Save as PDF</button></div>'+
+   '<div style="height:34px"></div>'+mdToHtml(md)+'</body></html>');
+  w.document.close();
+}
+function downloadDoc(id,which){const a=state.apps.find(x=>x.id===id);if(!a)return;
+  const k=DOC_KIND[which];const md=a[k.md];if(!md){alert('Nothing to download yet.');return;}
+  const safe=(a.company+' - '+k.kind).replace(/[^\w .-]/g,'');
+  download(safe+'.md',md,'text/markdown');}
+function renderDocCtrl(){
+  const el=document.getElementById('docctrl');if(!el)return;
+  const a=editingId?(state.apps.find(x=>x.id===editingId)||{}):{};
+  let h='';
+  if(a.resumeMD||a.resumeLink)h+='<a class="btnlink" onclick="openDoc(\''+editingId+'\',\'resume\')">View résumé</a>';
+  if(a.referralMD||a.referralLink)h+='<a class="btnlink" onclick="openDoc(\''+editingId+'\',\'referral\')">View referral note</a>';
+  if(a.coverMD||a.coverLink)h+='<a class="btnlink" onclick="openDoc(\''+editingId+'\',\'cover\')">View cover letter</a>';
+  if(hasPrep(a))h+='<a class="btnlink" onclick="openDoc(\''+editingId+'\',\'prep\')">View interview prep</a>';
+  if(!h)h='<span class="docnote">Applies with the base resume. The daily run drafts a referral note once the role is in To Apply.</span>';
+  el.innerHTML=h;
+}
+
+/* ---------- edit modal ---------- */
+function fillStatusSelect(){document.getElementById('f_status').innerHTML=ALL_STATUSES.map(s=>`<option>${s}</option>`).join('');}
+function openEdit(id){
+  editFrom=id&&window.Screens&&Screens.jobId()===id?id:null;if(window.Screens)Screens.closeJob();
+  editingId=id;
+  const a=id?state.apps.find(x=>x.id===id):{};
+  document.getElementById('mtitle').textContent=id?'Edit job':'Add job';
+  document.getElementById('delbtn').style.display=id?'inline-block':'none';
+  const g=k=>document.getElementById('f_'+k);
+  ['company','role','location','salary','dateApplied','nextFollowup','lastContact','contact','resumeVersion','source','url','notes','resumeLink','coverLink'].forEach(k=>g(k).value=a[k]||'');
+  g('status').value=a.status||'Screening';
+  g('arrangement').value=a.arrangement||'Remote';
+  g('excitement').value=a.excitement||'';
+  g('tier').value=tierOf(a);
+  g('coverLetter').value=a.coverLetter||'';
+  document.getElementById('modal').classList.add('show');
+  renderDocCtrl();
+}
+function closeEdit(){document.getElementById('modal').classList.remove('show');editingId=null;
+  const back=editFrom;editFrom=null;if(back&&window.Screens&&state.apps.some(x=>x.id===back))Screens.openJob(back);}
+function persistForm(){
+  const g=k=>document.getElementById('f_'+k).value.trim();
+  const company=g('company');
+  if(!company){alert('Company is required.');return null;}
+  const data={company,role:g('role'),status:g('status'),tier:g('tier'),arrangement:g('arrangement'),location:g('location'),
+    salary:g('salary'),excitement:g('excitement'),dateApplied:g('dateApplied'),nextFollowup:g('nextFollowup'),
+    lastContact:g('lastContact'),contact:g('contact'),resumeVersion:g('resumeVersion'),coverLetter:g('coverLetter'),
+    source:g('source'),url:g('url'),notes:g('notes'),resumeLink:g('resumeLink'),coverLink:g('coverLink')};
+  if(editingId){Object.assign(state.apps.find(x=>x.id===editingId),data);}
+  else{data.id=uid();data.dateAdded=today;state.apps.unshift(data);editingId=data.id;}
+  stampApplied(state.apps.find(x=>x.id===editingId));stampClosed(state.apps.find(x=>x.id===editingId));
+  save();return editingId;
+}
+function saveEdit(){if(persistForm()){closeEdit();render();}}
+function deleteCurrent(){if(!editingId)return;const a=state.apps.find(x=>x.id===editingId);
+  if(confirm(`Delete ${a.company} — ${a.role||''}? This can't be undone.`)){state.apps=state.apps.filter(x=>x.id!==editingId);save();editFrom=null;closeEdit();render();}}
+
+/* ---------- import / export ---------- */
+function download(name,text,type){const b=new Blob([text],{type});const u=URL.createObjectURL(b);const x=document.createElement('a');x.href=u;x.download=name;x.click();URL.revokeObjectURL(u);}
+function exportJSON(){download('launchpad-data.json',JSON.stringify(state.apps,null,2),'application/json');}
+function exportCSV(){
+  const cols=['company','role','status','tier','arrangement','location','salary','excitement','dateApplied','nextFollowup','lastContact','contact','resumeVersion','coverLetter','source','url','notes'];
+  const q=s=>'"'+((s||'')+'').replace(/"/g,'""')+'"';
+  const rows=[cols.join(',')].concat(state.apps.map(a=>cols.map(c=>q(a[c])).join(',')));
+  download('launchpad.csv',rows.join('\n'),'text/csv');
+}
+function importJSON(ev){const f=ev.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{const data=JSON.parse(r.result);if(!Array.isArray(data))throw 0;
+    if(confirm(`Import ${data.length} applications? This replaces your current ${state.apps.length}. (Export first if unsure.)`)){
+      state.apps=data;state.apps.forEach(a=>{if(!a.id)a.id=uid();});save();render();}
+  }catch(e){alert('That file is not valid tracker JSON.');}ev.target.value='';};
+  r.readAsText(f);}
+
+/* ---------- boot ---------- */
+document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeEdit();});
+// Escape closes the top layer only: palette and menus first, then a form, then a panel.
+document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;
+  if(window.Screens&&Screens.escape())return;
+  if(document.getElementById('modal').classList.contains('show'))closeEdit();});
+/* Theme: follow the system until you pick light or dark; the choice stays in this browser. */
+const THEMES=['system','light','dark'];
+function themeNow(){let t='';try{t=localStorage.getItem('launchpad_theme')||'';}catch(e){}return THEMES.includes(t)?t:'system';}
+function paintTheme(){const t=themeNow();if(t==='system')delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme=t;
+  document.querySelectorAll('[data-themelbl]').forEach(el=>el.textContent='Theme: '+t);}
+function cycleTheme(){const t=THEMES[(THEMES.indexOf(themeNow())+1)%THEMES.length];try{localStorage.setItem('launchpad_theme',t);}catch(e){}paintTheme();}
+paintTheme();
+document.getElementById('btnMore').addEventListener('click',e=>{e.stopPropagation();document.getElementById('moremenu').classList.toggle('show');});
+document.addEventListener('click',()=>document.getElementById('moremenu').classList.remove('show'));
+fillStatusSelect();
+load();
+loadColPrefs();
+initFilters();
+readHash();
+applyChrome();
+stamp();
+render();
+document.getElementById('btnCols').addEventListener('click',e=>{e.stopPropagation();const m=document.getElementById('colmenu');const open=!m.classList.contains('show');if(open)buildColMenu();m.classList.toggle('show',open);});
+document.addEventListener('click',e=>{if(!e.target.closest('#colwrap'))document.getElementById('colmenu').classList.remove('show');});
+/* The server is there but the data didn't load: show that plainly instead of demo rows. */
+function showLoadError(){
+  state.apps=[];render();
+  const chip=document.getElementById('filestat');chip.textContent='⚠ data.json · not loaded';chip.className='filechip warn';
+  const w=document.createElement('div');w.id='loadwarn';
+  w.className='banner';
+  w.innerHTML='<b>Your jobs and people could not be loaded from the tracker server</b> — '+esc(serverLoadError)+
+    '. Nothing shown here is your data, and changes will not be saved. <button class="btn" onclick="location.reload()">Reload</button>';
+  document.querySelector('.controls').before(w);
+}
+window.syncReady=initServerSync().then(ok=>{
+  if(ok){initFilters();stamp();render();updateFileStatus();}
+  else if(serverLoadError){showLoadError();}
+  else{initFileSync();}
+  return ok;
+});
+</script>
+<script src="your-move.js"></script>
+<script src="insights.js"></script>
+<script src="people-core.js"></script>
+<script src="people.js"></script>
+<script src="companies.js"></script>
+<script src="interviews.js"></script>
+<script src="screens.js"></script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+# Keeps personal files out of the public repository. Private copies hold personal
+# files on purpose, so the check runs only where the repository is public.
+name: Check public tree
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  check:
+    if: github.event.repository.private == false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 .agents/scripts/check-public-tree.py .
+      - run: python3 .agents/scripts/validate-agent-assets.py

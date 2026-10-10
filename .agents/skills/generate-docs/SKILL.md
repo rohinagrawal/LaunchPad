@@ -1,0 +1,73 @@
+---
+name: generate-docs
+description: Generate a tailored resume and cover letter for tracker roles in "To Apply" that don't have documents yet, and stamp them onto the cards. Use when the user says "generate my application docs", "tailor my resume for my to-apply roles", "make documents for a specific company", or when a docs-generation task fires (scheduled or via the Generate Now button).
+---
+
+# Generate tailored application documents
+
+For each To Apply card without documents: fetch the real posting, tailor from the master resume, write the files, stamp the card.
+
+## Ground rules
+- `<root>` is the user's LaunchPad folder (contains `Job-Thesis.md`, `Resume/Master-Resume.md`, `Cover Letters/Cover-Letter-Template.md`, `LaunchPad App/`). The data file is `<root>/Data/data.json` (installs from before v0.3.0 keep it at `<root>/LaunchPad App/data.json` — use whichever exists; the server's `/data.json` always serves the right one).
+- `data.json` is the ONLY data store; never modify index.html; no .bak files. Git commits are best-effort and optional — skip silently if git is unavailable.
+- NEVER fabricate: no invented skills, titles, dates, metrics — and no documents written against a job description you couldn't actually read.
+- NEVER lift language from the posting. Do not copy the posting's phrases, adjectives, or sentence stems into the resume or cover letter. The posting tells you what to *select and foreground* from real experience — it is not source text to echo. A hiring committee ranks down any document that reads like the job description handed back to them.
+- Every claim must trace to a specific, real thing in the master resume — a named project, team, system, or outcome. If a requirement in the posting has no genuine match in the user's experience, leave it unaddressed rather than papering over it with generic phrasing.
+- Numbers come from the master resume verbatim or not at all. Never invent, round up, or generate a plausible-looking metric, and never reuse the same stat as a near-duplicate across different bullets (the "increased efficiency by 20% / 23% / 18%" tell).
+- NEVER open a cover letter with "I'm writing to apply for..." or close with "I'd welcome the chance/opportunity to discuss... Thank you for your consideration." — these are the most recognizable template stems in existence. Name the role naturally inside the first paragraph; end with a specific, plain-spoken close.
+- Avoid the stock-phrase register recruiters flag as AI-written: "resonates with me", "aligns with my", "I'm excited to", "passionate about", "proven track record", "leveraged", "exactly the kind of", "I am confident that", "I am writing to express my interest", "delve", "testament", "paramount", "harness", "synergy" — and vague flattery about a company's "innovative culture" or "mission" that names no actual product, decision, or problem. Plain verbs and concrete nouns instead.
+- NEVER use hidden text, white-on-white keywords, microtext, or instructions addressed to an AI screener. Screening tools detect these and auto-reject; it is also dishonest.
+- Every claim must survive a screening call: include only stories the user could talk about unprompted for two minutes. If a bullet is technically true but the user was only adjacent to the work, soften it or cut it — a resume that outruns its owner fails at the first conversation.
+- Watch the punctuation rhythm: at most one em-dash per paragraph in the cover letter, and don't let every resume bullet follow the same verb—clause—outcome shape. Vary sentence length; a short sentence is fine.
+
+## Step 1 — Select cards
+Entries where status == "To Apply", all of resumeMD / coverMD / resumeLink / coverLink are empty/absent, and notes does not contain "[docs:" (a prior failure/skip marker — the user deletes the marker to request a retry). If none: report that in one line and stop. Process at most 4 per run, oldest first.
+
+## Step 2 — Get the job description
+FIRST check `<root>/Job Listings/<Company> - <Role>.md` — the job scrub saves captured postings there. If present and substantive, use it (no fetch needed). Otherwise fetch the card's `url` (browser tools if the page is client-rendered and available). If unreachable, login-gated, expired, or a different role: append "[docs: skipped YYYY-MM-DD — <reason>]" to notes and move on. A mirror found by web search is acceptable only if it is unambiguously the same role. When a fetch succeeds, save the description to `<root>/Job Listings/<Company> - <Role>.md` for next time. If the description is too thin to tailor against, treat as a skip.
+
+## Step 3 — Tailor
+Read `Job-Thesis.md` (positioning honesty rules), `Resume/Master-Resume.md` (trim/reorder from it, never invent), and `Cover Letters/Cover-Letter-Template.md` (structure, header block, 250-350 words).
+
+Work from experience toward the posting, never the reverse:
+1. Read the posting and list what this employer actually cares about (the underlying needs, not the buzzwords).
+2. For each need, find the strongest REAL match in the master resume and lead with it. Reorder and trim so the most relevant genuine experience is on top; drop what doesn't serve this role.
+3. Write each bullet as concrete evidence — what the user actually did, the situation, and the real outcome — in the user's own plain phrasing. Prefer specifics ("stood up a weekly triage between support and product and cut the escalation backlog") over restated competencies ("leveraged cross-functional collaboration").
+4. Distinguish nouns from phrasing. Hard skills, tools, and standard role terms the user genuinely has (e.g. "Zendesk", "SaaS", "CSAT", "escalation management") should appear in the resume under their exact canonical names — ATS keyword matching is literal, and a true term is not an echo. Spell out an important acronym once ("Voice of Customer (VoC)"). What must never transfer is the posting's *sentences*: its adjectives, stems, and marketing language.
+5. Keyword coverage check: list the posting's named hard skills/tools, mark which the master resume genuinely covers, and make sure each covered one appears at least once under its exact term. Leave the uncovered ones absent — do not stuff, repeat skills, or pad the skills list to raise a match score; screeners flag dense keyword lists faster than they reward them.
+
+The cover letter opens with a specific, genuine hook about THIS company (something true about the role, product, team, or problem — not a template line with the company name slotted in). It should read as if this user wrote it about this one job, and could not be sent to any other company unchanged.
+
+## Step 4 — Authenticity self-check (before writing files)
+Read each draft back and verify all of the following. If any fails, revise before writing — do not ship a draft that fails these:
+- **Uniqueness test:** could this exact sentence appear on a stranger's resume for this job? If yes, it's generic — rewrite it around the user's specific experience or cut it.
+- **No echo:** no phrase or sentence stem is lifted from the posting; the cover letter is not the job description rephrased.
+- **No template smell:** bullets don't share a repeated stem with only the noun/number swapped; the cover letter opening is not reusable across companies.
+- **Traceable:** every skill, title, date, and metric maps to something real in the master resume.
+- **Not a sibling:** open the 2–3 most recently generated cover letters (the newest `* - Cover Letter.md` files across the `Applications/*/` company folders, including any `Applications/Archive/`) and compare. No shared opening sentence, closing sentence, or near-verbatim anecdote phrasing. The same true story may appear in two letters, but told differently and only where it is the strongest match — rotate which achievements lead when the posting allows. A recruiter who sees two of these letters should not be able to tell they came from the same template.
+- **Sounds human:** read it aloud in your head — if it sounds like LinkedIn boilerplate rather than a person describing their own work, fix it. Check the tics: stock openers/closers, em-dash pileups, "not just X but Y" constructions, rule-of-three lists in every paragraph, and statistically smooth prose — vary sentence length; a blunt short sentence is a feature.
+- **Consistent pair:** the resume and cover letter must agree with each other — same titles, dates, and numbers, same register and voice. Screeners (human and LLM) cross-check the two documents; a polished letter stapled to a differently-voiced resume reads as generated.
+If a card can only be filled with generic material because the genuine match is weak, prefer a shorter, rougher, honest document over a polished generic one — and note the weak fit in the report rather than hiding it.
+
+## Step 5 — Write the files
+Save both documents into a per-company folder so a company's resume and cover letter live together:
+- `<root>/Applications/<Company>/<Candidate> - Resume.pdf` and `<Candidate> - Resume.md`
+- `<root>/Applications/<Company>/<Candidate> - Cover Letter.pdf` and `<Candidate> - Cover Letter.md`
+
+`<Company>` is the card's company (sanitize "/" and ":"); one folder per company, shared across that company's roles. `<Candidate>` is the applicant's recruiter-facing name from the master resume's name header — plain First Last, no nicknames or parentheticals (e.g. "Thomas (TJ) Baker" → "Thomas Baker"). If a company has two active roles that genuinely need different documents, disambiguate by inserting the role: `<Candidate> - <Role> - Resume.pdf`.
+
+The deliverable is a **text-based PDF** (selectable text, never a scanned image) plus the editable `.md` source — do NOT save `.docx`. Build the PDF from a clean single-column layout: render the markdown with the docx skill (read its SKILL.md first) into a temporary `.docx`, convert that to PDF with LibreOffice (`soffice --headless --convert-to pdf`), then discard the `.docx`. Verify the PDF is text-selectable, not an image (`pdftotext <file> - | wc -w` returns a real word count).
+
+ATS-safe layout rules for the resume PDF — apply them in the intermediate .docx so they carry into the exported PDF (parsers scramble anything else):
+- Single column. No tables, text boxes, images, icons, or graphics anywhere.
+- Contact info in the document body, never in the Word header/footer (many parsers drop headers/footers entirely).
+- Standard section headings: "Summary", "Skills"/"Core Competencies", "Professional Experience", "Education" — no creative titles.
+- Standard font (Calibri, Arial, or Georgia) at 10–12pt; plain round bullets only — no arrows, checkmarks, or custom glyphs.
+- Dates as "Month YYYY – Month YYYY" (or "– Present"), consistent everywhere; never apostrophe-year ('21).
+- Bold section headings, job titles, and company names only — never words, numbers, or keywords inside sentences (mid-sentence bolding is a known AI tell, and parsers don't care).
+
+## Step 6 — Stamp the card
+For each processed entry set: `resumeMD` and `coverMD` = the full markdown (powers the app's built-in viewers), `resumePath` and `coverPath` = the root-relative POSIX paths to the two PDFs (e.g. `Applications/<Company>/<Candidate> - Resume.pdf`), `resumeVersion` = "Tailored YYYY-MM-DD", `coverLetter` = "Yes", and append "[docs: generated YYYY-MM-DD]" to notes. Preserve everything else. VALIDATE: JSON parses, length unchanged, only intended entries differ. Commit best-effort wherever git is set up (skip silently if it isn't): if `<root>` is a git repo, `git -C "<root>" add -A -- Data Applications "Job Listings" && git -C "<root>" commit -m "generate-docs: <companies>"`; on older installs where only `LaunchPad App/` is a repo, `git -C "<root>/LaunchPad App" add -A . && git -C "<root>/LaunchPad App" commit -m "generate-docs: <companies>"`.
+
+## Step 7 — Report
+Which cards got documents, which were skipped and why, and flag any where the genuine fit was weak so the user can decide whether to apply. Remind the user to review drafts before sending. The files are already candidate-named and exported as text-based PDF (with editable `.md` alongside) in `Applications/<Company>/`, so they upload as-is — the recruiter gets the candidate's name in the filename and a format that renders identically everywhere. Never regenerate a card that already has documents.

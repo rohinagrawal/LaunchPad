@@ -1,0 +1,222 @@
+{
+  "schema_version": 1,
+  "validation_command": "python3 .agents/scripts/validate-agent-assets.py",
+  "hosts": [
+    "codex",
+    "claude"
+  ],
+  "assets": [
+    {
+      "id": "agent-guide",
+      "kind": "guide",
+      "source": ".agents/README.md",
+      "hosts": [
+        "codex",
+        "claude"
+      ],
+      "docs": [
+        ".agents/README.md",
+        "AGENTS.md"
+      ]
+    },
+    {
+      "id": "rule-agent-asset-maintenance",
+      "kind": "rule",
+      "source": ".agents/rules/agent-asset-maintenance.md",
+      "hosts": [
+        "codex",
+        "claude"
+      ],
+      "docs": [
+        ".agents/rules/agent-asset-maintenance.md"
+      ]
+    },
+    {
+      "id": "rule-launchpad-conventions",
+      "kind": "rule",
+      "source": ".agents/rules/launchpad-conventions.md",
+      "hosts": [
+        "codex",
+        "claude"
+      ],
+      "docs": [
+        ".agents/rules/launchpad-conventions.md",
+        "README.md"
+      ]
+    },
+    {
+      "id": "rule-run-and-verify",
+      "kind": "rule",
+      "source": ".agents/rules/run-and-verify.md",
+      "hosts": [
+        "codex",
+        "claude"
+      ],
+      "docs": [
+        ".agents/rules/run-and-verify.md",
+        "LaunchPad App/README.md"
+      ]
+    },
+    {
+      "id": "skill-agents-bootstrap",
+      "kind": "skill",
+      "source": ".agents/skills/agents-bootstrap/SKILL.md",
+      "hosts": [
+        "codex",
+        "claude"
+      ],
+      "docs": [
+        ".agents/skills/agents-bootstrap/SKILL.md"
+      ],
+      "adapter_hosts": [
+        "claude"
+      ],
+      "adapters": [
+        {
+          "host": "claude",
+          "type": "symlink",
+          "path": ".claude/skills",
+          "target": ".agents/skills"
+        }
+      ]
+    },
+    {
+      "id": "skill-setup-launchpad",
+      "kind": "skill",
+      "source": ".agents/skills/setup-launchpad/SKILL.md",
+      "hosts": [
+        "codex",
+        "claude"
+      ],
+      "docs": [
+        ".agents/skills/setup-launchpad/SKILL.md",
+        ".agents/skills/setup-launchpad/assets/Job-Thesis-Template.md",
+        ".agents/skills/setup-launchpad/assets/Answer-Bank-Template.md",
+        ".agents/skills/setup-launchpad/assets/Routine-Prompt-Template.md",
+        ".agents/skills/setup-launchpad/assets/Referral-Playbook-Template.md"
+      ]
+    },
+    {
+      "id": "skill-preflight",
+      "kind": "skill",
+      "source": ".agents/skills/preflight/SKILL.md",
+      "hosts": [
+        "codex",
+        "claude"
+      ],
+      "docs": [
+        ".agents/skills/preflight/SKILL.md"
+      ]
+    },
+    {
+      "id": "skill-job-scrub",
+      "kind": "skill",
+      "source": ".agents/skills/job-scrub/SKILL.md",
+      "hosts": [
+        "codex",
+        "claude"
+      ],
+      "docs": [
+        ".agents/skills/job-scrub/SKILL.md"
+      ]
+    },
+    {
+      "id": "skill-linkedin-job-search",
+      "kind": "skill",
+      "source": ".agents/skills/linkedin-job-search/SKILL.md",
+      "hosts": [
+        "codex",
+        "claude"
+      ],
+      "docs": [
+        ".agents/skills/linkedin-job-search/SKILL.md"
+      ]
+    },
+    {
+      "id": "skill-people-finder",
+      "kind": "skill",
+      "source": ".agents/skills/people-finder/SKILL.md",
+      "hosts": [
+        "codex",
+        "claude"
+      ],
+      "docs": [
+        ".agents/skills/people-finder/SKILL.md"
+      ]
+    },
+    {
+      "id": "skill-referral-outreach",
+      "kind": "skill",
+      "source": ".agents/skills/referral-outreach/SKILL.md",
+      "hosts": [
+        "codex",
+        "claude"
+      ],
+      "docs": [
+        ".agents/skills/referral-outreach/SKILL.md",
+        ".agents/skills/referral-outreach/Outreach-Rules.md"
+      ]
+    },
+    {
+      "id": "skill-reply-monitor",
+      "kind": "skill",
+      "source": ".agents/skills/reply-monitor/SKILL.md",
+      "hosts": [
+        "codex",
+        "claude"
+      ],
+      "docs": [
+        ".agents/skills/reply-monitor/SKILL.md"
+      ]
+    },
+    {
+      "id": "skill-generate-docs",
+      "kind": "skill",
+      "source": ".agents/skills/generate-docs/SKILL.md",
+      "hosts": [
+        "codex",
+        "claude"
+      ],
+      "docs": [
+        ".agents/skills/generate-docs/SKILL.md"
+      ]
+    },
+    {
+      "id": "skill-apply-to-job",
+      "kind": "skill",
+      "source": ".agents/skills/apply-to-job/SKILL.md",
+      "hosts": [
+        "codex",
+        "claude"
+      ],
+      "docs": [
+        ".agents/skills/apply-to-job/SKILL.md"
+      ]
+    },
+    {
+      "id": "skill-interview-prep",
+      "kind": "skill",
+      "source": ".agents/skills/interview-prep/SKILL.md",
+      "hosts": [
+        "codex",
+        "claude"
+      ],
+      "docs": [
+        ".agents/skills/interview-prep/SKILL.md"
+      ]
+    },
+    {
+      "id": "skill-docs-cleanup",
+      "kind": "skill",
+      "source": ".agents/skills/docs-cleanup/SKILL.md",
+      "hosts": [
+        "codex",
+        "claude"
+      ],
+      "docs": [
+        ".agents/skills/docs-cleanup/SKILL.md"
+      ]
+    }
+  ],
+  "mcp_startups": []
+}
