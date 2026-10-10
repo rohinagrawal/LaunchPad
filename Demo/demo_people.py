@@ -61,6 +61,22 @@ def demo_contacts(today):
         {"id": "ct-demo8", "name": "Example Person Eight", "title": "Engineer",
          "company": "Demo Corp", "relation": "same-org engineer", "likelihood": 20,
          "why": "Demo: skipped", "stage": "Skipped"},
+        # People at the roles further along, so the later stages and Insights have something in them.
+        {"id": "ct-demo10", "name": "Example Person Ten", "title": "Senior Engineer",
+         "company": "Fictional Systems", "relation": "ex-colleague", "likelihood": 80,
+         "why": "Demo: referred you last week", "stage": "Referred", "appIds": ["app-demo5"],
+         "dateRequested": ago(14), "dateConnected": ago(12), "dateAsked": ago(10), "dateReplied": ago(7),
+         "askMessage": "Hi, demo ask text.", "askApproved": True},
+        {"id": "ct-demo11", "name": "Example Person Eleven", "title": "Engineering Manager",
+         "company": "Mock Works", "relation": "hiring manager", "likelihood": 65,
+         "why": "Demo: replied and passed your resume on", "stage": "Referred", "appIds": ["app-demo6"],
+         "dateRequested": ago(26), "dateConnected": ago(24), "dateAsked": ago(22), "dateReplied": ago(20),
+         "askMessage": "Hi, demo ask text.", "askApproved": True},
+        {"id": "ct-demo12", "name": "Example Person Twelve", "title": "Staff Engineer",
+         "company": "Specimen AI", "relation": "alumni", "likelihood": 70,
+         "why": "Demo: asked three days ago, no reply yet", "stage": "Asked", "appIds": ["app-demo7"],
+         "dateRequested": ago(9), "dateConnected": ago(6), "dateAsked": ago(3),
+         "askMessage": "Hi, demo ask text.", "askApproved": True},
     ]
     out = [dict(blank, linkedinUrl=f"https://www.linkedin.com/in/{p['id']}", **p) for p in people]
     # Someone reached by email instead of LinkedIn: no profile, starts ready to ask.
@@ -90,7 +106,29 @@ def demo_jobs(today):
          "fitScore": "90", "notes": "Tier A · demo role with an interview prep document",
          "prepPath": "Interview Prep/Example Co - Staff Engineer (demo).md",
          "prepMD": "# Interview prep — Example Co, Staff Engineer (demo)\n> Recruiter screen · demo\n\n"
-                   "## Snapshot\n- What they do: demo text\n\n## Likely questions\n- Demo question one\n"},
+                   "## Snapshot\n- What they do: demo text\n\n## Likely questions\n- Demo question one\n",
+         "interviews": [{"id": "iv-demo1", "date": ago(-2), "time": "15:00", "round": "Recruiter screen",
+                         "with": "Example Recruiter", "notes": "Demo round", "outcome": ""}]},
+        {"id": "app-demo4", "company": "Placeholder Inc", "role": "Backend Engineer (demo)", "tier": "C",
+         "status": "Screening", "dateAdded": ago(2), "source": "Job board", "fitScore": "64",
+         "fitBreakdown": {"role": 4, "skills": 3, "level": 3, "pay": 2, "location": 3, "posting": 4},
+         "notes": "Tier C · demo role · pay below your floor"},
+        {"id": "app-demo5", "company": "Fictional Systems", "role": "Senior Engineer (demo)", "tier": "B",
+         "status": "Applied", "dateAdded": ago(16), "dateApplied": ago(5), "nextFollowup": ago(-2),
+         "source": "LinkedIn", "fitScore": "82", "notes": "Tier B · demo role · applied with a referral"},
+        {"id": "app-demo6", "company": "Mock Works", "role": "Infrastructure Engineer (demo)", "tier": "A",
+         "status": "Interviewing", "dateAdded": ago(28), "dateApplied": ago(18), "source": "Referral",
+         "fitScore": "84", "notes": "Tier A · demo role · one round passed, the loop is next",
+         "interviews": [{"id": "iv-demo2", "date": ago(6), "time": "11:00", "round": "Technical",
+                         "with": "Example Engineer", "notes": "Demo round", "outcome": "Passed"},
+                        {"id": "iv-demo3", "date": ago(-4), "time": "10:00", "round": "Onsite / loop",
+                         "with": "Example panel", "notes": "Demo round", "outcome": ""}]},
+        {"id": "app-demo7", "company": "Specimen AI", "role": "Senior Backend Engineer (demo)", "tier": "A",
+         "status": "Offer", "dateAdded": ago(40), "dateApplied": ago(30), "source": "Company site",
+         "fitScore": "88", "notes": "Tier A · demo role · an offer waiting for your answer"},
+        {"id": "app-demo8", "company": "Sandbox Health", "role": "Software Engineer (demo)", "tier": "C",
+         "status": "Rejected", "dateAdded": ago(34), "dateApplied": ago(25), "dateClosed": ago(6),
+         "source": "Job board", "fitScore": "61", "notes": "Tier C · demo role · closed after the first screen"},
     ]
 
 
