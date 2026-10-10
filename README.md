@@ -61,6 +61,7 @@ The skills live in `.agents/skills/`, so a fresh clone has them.
 | `Data/` | Everything the tracker stores: `data.json` (jobs), `contacts.json` (people), `autopilot.json`, and local `backups/`. See [Data/README.md](Data/README.md) |
 | `Demo/` | A throwaway tracker with fake data |
 | `Docs/` | The guides above |
+| `Site/` | The landing page, published to GitHub Pages from the public repository |
 | `.agents/` | The skills, rules and guide for AI agents. `AGENTS.md` at the root points to it |
 | `Job-Thesis.md` | What counts as a fit: role tiers, companies, constraints, pay floor. Every search reads it |
 | `Target-Companies.md` | Optional research behind your company list; your reference only |

@@ -14,6 +14,7 @@ LaunchPad App/     app code only (Python stdlib, plain HTML/JS/CSS, no build ste
 Data/                everything the tracker stores
 Demo/                self-contained demo with fake data
 Docs/                guides for people: setup, hosting, automation
+Site/                the public landing page; build.py adds a live demo of the tracker for GitHub Pages
 Job Listings/        saved postings and each run's New-Openings-YYYY-MM-DD.md review file
 Applications/        per-company documents
 Interview Prep/      one prep document per interview
@@ -34,7 +35,7 @@ Resume/ Referral/ Cover Letters/ Company Research/   the user's own documents an
 
 LaunchPad is published as a public repository that holds only the product. A person's own copy is private and adds their files on top.
 
-- Product, the same for every user: `LaunchPad App/`, `.agents/`, `.claude/`, `.github/`, `Demo/`, `Docs/`, `README.md`, `AGENTS.md`, `LICENSE`, `tracker.py`, `pyproject.toml`, `uv.lock`, `Data/README.md`, `Archive/README.md`.
+- Product, the same for every user: `LaunchPad App/`, `.agents/`, `.claude/`, `.github/`, `Demo/`, `Docs/`, `Site/`, `README.md`, `AGENTS.md`, `LICENSE`, `tracker.py`, `pyproject.toml`, `uv.lock`, `Data/README.md`, `Archive/README.md`.
 - Personal, never in the public repository: `Data/*.json`, `Resume/`, `Referral/`, `Applications/`, `Job Listings/`, `Interview Prep/`, `Cover Letters/`, `Company Research/`, `Archive/` contents, `Job-Thesis.md`, `Target-Companies.md`, `START-HERE.md`.
 - Nothing personal goes in a product path. Personal settings live in `Data/outreach-config.json`; `LaunchPad App/outreach-config.json` holds the defaults.
 - In a private copy that has the public repository as its `upstream` remote, make product changes in a clone of the public repository and bring them in with `git pull --no-rebase upstream main`. Never push from the private copy to `upstream`. In that copy `gh` must target the private repository (`gh repo set-default`), and every `gh` command in an automated run names it with `--repo`.
