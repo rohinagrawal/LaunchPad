@@ -11,9 +11,11 @@ Standard library only.
 """
 import argparse
 import functools
+import html
 import http.server
 import importlib.util
 import json
+import re
 import shutil
 import sys
 import tempfile
@@ -37,6 +39,20 @@ def demo_module():
     return module
 
 
+def add_faq_data(page):
+    """Give search engines the FAQ as structured data, read from the page so it cannot drift."""
+    html_text = page.read_text(encoding="utf-8")
+    pairs = re.findall(r"<details[^>]*><summary>(.*?)</summary><p>(.*?)</p></details>", html_text, re.S)
+    if not pairs:
+        return
+    plain = lambda text: html.unescape(re.sub(r"<[^>]+>", "", text)).strip()
+    data = {"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [
+        {"@type": "Question", "name": plain(q), "acceptedAnswer": {"@type": "Answer", "text": plain(a)}}
+        for q, a in pairs]}
+    block = '<script type="application/ld+json">' + json.dumps(data).replace("</", "<\\/") + "</script>\n</head>"
+    page.write_text(html_text.replace("</head>", block, 1), encoding="utf-8")
+
+
 def build(out):
     out = Path(out).resolve()
     if out in (ROOT, SITE) or out in ROOT.parents or out == APP:
@@ -51,11 +67,12 @@ def build(out):
             shutil.copy2(src, app / src.name)
     shutil.copy2(SITE / SHIM, app / SHIM)
     page = app / "index.html"
-    html = page.read_text(encoding="utf-8")
-    if "<head>" not in html:
+    app_html = page.read_text(encoding="utf-8")
+    if "<head>" not in app_html:
         raise SystemExit("the tracker page has no <head> to add the demo shim to")
     # First in <head>, so the tracker's requests are answered before any of its scripts run.
-    page.write_text(html.replace("<head>", f'<head>\n<script src="{SHIM}"></script>', 1), encoding="utf-8")
+    page.write_text(app_html.replace("<head>", f'<head>\n<script src="{SHIM}"></script>', 1), encoding="utf-8")
+    add_faq_data(out / "index.html")
     demo, today = demo_module(), date.today()
     config = json.loads((APP / "outreach-config.json").read_text(encoding="utf-8"))
     config.update({"defaultAttachment": "base", "baseResumePath": demo.DEMO_RESUME})
