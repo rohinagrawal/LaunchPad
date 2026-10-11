@@ -18,6 +18,7 @@ import sys
 import urllib.request
 
 import contacts_store  # same folder: the link check used when messages are saved
+import jobs_store  # same folder: the statuses the tracker knows
 import server  # same folder: the tracker's own validation
 import storage
 
@@ -78,6 +79,10 @@ def check_jobs(rep):
     dupes = sorted({i for i in ids if ids.count(i) > 1})
     if dupes:
         rep.warn("jobs", f"{len(dupes)} job id(s) used more than once: {', '.join(dupes[:5])}")
+    odd = sorted({str(j.get("status")) for j in jobs if j.get("status") not in jobs_store.STATUSES})
+    if odd:
+        rep.warn("jobs", f"{sum(1 for j in jobs if j.get('status') not in jobs_store.STATUSES)} job(s) have a status "
+                         f"the tracker does not know ({', '.join(odd[:5])}); they show under Screening")
     rep.ok("jobs", f"{shown}: {len(jobs)} jobs")
     return jobs
 

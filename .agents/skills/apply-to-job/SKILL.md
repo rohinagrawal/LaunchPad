@@ -22,7 +22,7 @@ Fill the form; the user submits it. Nothing is submitted, and no declaration is 
 
 ## 1. Pick the role and check it
 
-1. Find the card in the tracker (`GET http://localhost:8787/data.json` when the server is up, else `Data/data.json`). It should be in **To Apply**. If it's still in Screening, ask before going on: moving it is the user's approval.
+1. Find the card with `jobs list --company "<Company>"`, where `jobs` means `python3 "<root>/LaunchPad App/jobs_store.py"` (the only way to read or change jobs; never edit `data.json`). It should be in **To Apply**. If it's still in Screening, ask before going on: moving it is the user's approval.
 2. If a referral is in progress for this role (People screen: someone Asked or Referred for this card), say so and ask whether to wait. A referral usually has to be entered before the application.
 3. Open the card's `url`. If the posting says it's closed or no longer accepting applications, stop and tell the user; offer to mark the card Won't Apply.
 
@@ -67,7 +67,7 @@ Ask: "Submit this application?" A yes covers this form only.
 
 Only after a confirmed submission:
 
-1. Set the card's `status` to `Applied`, `dateApplied` to today, `nextFollowup` to today + 7 days, `resumeVersion` to the file you used, and append `[applied <today> — <where: company site, Greenhouse, …>]` to `notes`. Write through the tracker server when it's running (GET `/data.json`, change the one card, POST the full array to `/save` with `X-Base-Revision`); otherwise edit `Data/data.json`. Keep every other card and field.
+1. `jobs move <id> Applied` (it stamps today as the applied date and a follow-up seven days on), then `jobs update <id>` with `{"resumeVersion": "<the file you used>"}` and `jobs note <id> "[applied <today> — <where: company site, Greenhouse, …>]"`.
 2. Add any new answers the user gave you to `Resume/Answer-Bank.md`, so the next form doesn't ask again. Ask first for anything sensitive (pay figures).
 3. Report: what was submitted, the confirmation you saw, and the follow-up date.
 

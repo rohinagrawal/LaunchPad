@@ -26,7 +26,7 @@ Open LinkedIn Jobs searches in the browser (built-in first, Chrome as fallback; 
 - Run the queries in this order:
   1. The Tier A titles from the thesis.
   2. `<Company> <role area>`, for each target company in the thesis, highest priority first.
-- Before opening a posting, skip it if `data.json` already has the same company and role (case-insensitive), a recent `Job Listings/New-Openings-*.md` lists it, or it already appeared in this run.
+- Before opening a posting, skip it if `jobs find --company "<Company>" --role "<Role>" --url "<link>"` returns anything, a recent `Job Listings/New-Openings-*.md` lists it, or it already appeared in this run.
 - Read at most 25 postings per run.
 
 ## 3. Score
@@ -58,19 +58,17 @@ With no signal for a part (pay not stated, no posting date), give it 3 and say s
 ## 4. Save and add (roles scoring 50+)
 
 1. Save the description to `Job Listings/<Company> - <Role>.md`, replacing `/` and `:` with `-`. Put the posting URL and today's date on the first two lines.
-2. Append this entry to the tracker's `data.json` (`Data/data.json`; older installs: `LaunchPad App/data.json`), using the write path in Outreach-Rules.md:
+2. Add the roles with `jobs add` (see Outreach-Rules.md), all in one JSON array on stdin:
 
    ```json
-   {"id": "app-<base36 of Date.now()><4 random base36 chars>", "company": "", "role": "",
-    "location": "", "arrangement": "Remote|Hybrid|Onsite",
-    "url": "https://www.linkedin.com/jobs/view/<id>/", "dateAdded": "<today>", "dateApplied": "",
-    "status": "Screening", "tier": "A|B|C", "resumeVersion": "", "coverLetter": "", "contact": "", "lastContact": "",
-    "nextFollowup": "", "salary": "<stated pay or empty>", "excitement": "", "fitScore": "<score>",
-    "fitBreakdown": {"role": 0, "skills": 0, "level": 0, "pay": 0, "location": 0, "posting": 0},
-    "notes": "<tier> · <one-line why> · <anything to verify>", "source": "LinkedIn"}
+   [{"company": "", "role": "", "location": "", "arrangement": "Remote|Hybrid|Onsite",
+     "url": "https://www.linkedin.com/jobs/view/<id>/", "tier": "A|B|C", "salary": "<stated pay or empty>",
+     "fitScore": "<score>",
+     "fitBreakdown": {"role": 0, "skills": 0, "level": 0, "pay": 0, "location": 0, "posting": 0},
+     "notes": "<tier> · <one-line why> · <anything to verify>", "source": "LinkedIn"}]
    ```
 
-3. Check the result: the JSON parses, the array grew by exactly the number you added, and no existing entry changed.
+3. Read the tool's output: `added` is what landed in Screening, `skipped` names the ones already on the board. An error means nothing was saved; fix the value it names and run it again.
 
 ## 5. Review file
 

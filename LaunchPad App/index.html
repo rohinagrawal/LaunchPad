@@ -193,6 +193,8 @@ const TONE={"Researching":"grey","Screening":"grey","To Apply":"amber","Applied"
 const HIDDEN=['Rejected','Withdrawn','Ghosted',"Won't Apply"];
 const today=new Date().toISOString().slice(0,10);
 // Closed cards get a dateClosed (cleanup.py archives them 30 days later); reopening clears it.
+// The statuses above and the two stamps below must match jobs_store.py (STATUSES, stamp), which
+// the skills use; the page keeps its own copy so the tracker also works with no server.
 function stampClosed(a){if(!a)return;
   if(HIDDEN.includes(a.status)){if(!a.dateClosed)a.dateClosed=today;}
   else{delete a.dateClosed;delete a.autoClosed;}}

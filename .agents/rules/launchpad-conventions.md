@@ -44,8 +44,9 @@ LaunchPad is published as a public repository that holds only the product. A per
 ## Changing Data
 
 - `Data/data.json` and `Data/contacts.json` are the single source of truth. Change them through the tracker or its tools, not by hand.
-- If the server is running (`GET /health` answers), write through it: read `/data.json`, change the array, and POST the full array to `/save` with the `X-Base-Revision` you read. A 409 means someone else saved first; reload and redo the change. Edit the file directly only when the server is down.
-- Use `LaunchPad App/contacts_store.py` for people (`list`, `add`, `update`, `quota`).
+- Agents and scripts change them with the two tools below, never by hand and never by posting to `/save` themselves. The tools handle the server-or-file choice and the revision check.
+- Use `LaunchPad App/jobs_store.py` for jobs (`list`, `find`, `add`, `update`, `move`, `note`) and `LaunchPad App/contacts_store.py` for people (`list`, `add`, `update`, `quota`). Both check what is written, write through the server when it is up, and refuse to overwrite a save made meanwhile. Skills name these tools; they never describe a manual read-edit-save.
+- A rule about a job's data (statuses, ids, date stamps) lives in `jobs_store.py` and, because the tracker also runs with no server, in the page (`index.html`). Change both together.
 - New fields on a job or a person must be optional. Cards and people without them have to keep working, and an edit in the tracker must not strip them.
 - The hosted copy commits each save to `main` as `tracker: save Data/...`. Run `git pull --rebase --autostash` before editing data and never force-push.
 - Archive, never delete: closed and stale items move to `Archive/` (see `LaunchPad App/cleanup.py`).

@@ -35,11 +35,10 @@ import os
 import re
 import shutil
 import sys
-import urllib.error
-import urllib.request
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import contacts_store  # noqa: E402  (same folder; also brings `server` and the data paths)
+import jobs_store  # noqa: E402  (same folder: reads and writes data.json)
 import storage  # noqa: E402
 
 STALE_SCREENING_DAYS = 21
@@ -76,29 +75,14 @@ def listing_name(company, role):
 
 # ---------------------------------------------------------------- data I/O
 def load_jobs():
-    if contacts_store.server_up():
-        req = urllib.request.Request(contacts_store.BASE_URL + "/data.json", headers=contacts_store._auth_headers())
-        with urllib.request.urlopen(req, timeout=5) as r:
-            return json.load(r), r.headers.get("X-Data-Revision", "")
-    return storage.read_json(storage.DATA_FILE, []), storage.file_revision(storage.DATA_FILE)
+    return jobs_store.load_jobs()
 
 
 def save_jobs(apps, revision):
-    body = json.dumps(apps, indent=2, ensure_ascii=False)
-    if contacts_store.server_up():
-        req = urllib.request.Request(contacts_store.BASE_URL + "/save", data=body.encode("utf-8"), method="POST",
-                                     headers={"Content-Type": "application/json", "X-Base-Revision": revision,
-                                              **contacts_store._auth_headers()})
-        try:
-            with urllib.request.urlopen(req, timeout=10) as r:
-                json.load(r)
-        except urllib.error.HTTPError as e:
-            raise SystemExit(f"data.json changed while cleaning up ({e.code}); nothing was saved — re-run.")
-        return
-    if storage.file_revision(storage.DATA_FILE) != revision:
+    try:
+        jobs_store.save_jobs(apps, revision)
+    except jobs_store.ConflictError:
         raise SystemExit("data.json changed while cleaning up; nothing was saved — re-run.")
-    storage.rotate_backup(storage.DATA_FILE, "data")
-    storage.atomic_write(storage.DATA_FILE, body)
 
 
 def append_archive(name, items):

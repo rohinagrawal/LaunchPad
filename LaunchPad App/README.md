@@ -109,6 +109,26 @@ or in a bar along the bottom on a phone. The tracker opens on Today.
 **Always available:** **Export** (JSON snapshot), **Import** (restore/replace),
 and **CSV** for spreadsheets.
 
+## Tools for agents and scripts
+
+Two command-line tools are the only way anything other than the tracker page
+changes the data. Both check what is written, write through the server when it
+is running (so an open tracker stays in step) and to the file otherwise, and
+retry once, then stop, if the data changed underneath them.
+
+| Tool | Data | Commands |
+|---|---|---|
+| `jobs_store.py` | `data.json` | `list`, `find` (is this posting already here?), `add`, `update`, `move` (status, with the dates stamped), `note` |
+| `contacts_store.py` | `contacts.json` | `list`, `add`, `update`, `quota` |
+
+```bash
+python3 jobs_store.py list --status "To Apply" --fields company,role,fitScore
+```
+
+Run either with `--help` for its options. The rules a job follows (the status
+list, id format, applied and closed dates) are in `jobs_store.py` and mirrored
+in `index.html`, which needs its own copy to work with no server.
+
 ## Server endpoints (`server.py`)
 
 | Route | What it does |

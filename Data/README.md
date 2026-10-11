@@ -4,7 +4,7 @@ Everything the tracker stores, kept apart from the app in `LaunchPad App/`.
 
 | File | What it is | Written by |
 |---|---|---|
-| `data.json` | The jobs board: one entry per role. | The tracker (Jobs view), job scrub, reply monitor, generate-docs |
+| `data.json` | The jobs board: one entry per role. | The tracker (Jobs view) and `LaunchPad App/jobs_store.py` (used by the skills) |
 | `contacts.json` | The People screen: referral contacts and where each is in the outreach pipeline. | The tracker (People view) and `LaunchPad App/contacts_store.py` (used by the outreach skills) |
 | `outreach-config.json` | Your outreach settings (base resume, limits, pacing). Optional: without it the defaults in `LaunchPad App/outreach-config.json` apply. | You, or the setup skill |
 | `backups/` | The last 20 versions of each file, made before every save. Local only (not committed). | The tracker server |

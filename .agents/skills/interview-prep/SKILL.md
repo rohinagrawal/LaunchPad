@@ -19,7 +19,7 @@ One document the user can read on the way in. Specific to this company, this rol
 
 ## 1. Find the interview
 
-Match the user's words to a card in the tracker (`GET http://localhost:8787/data.json` when the server is up, else `Data/data.json`). If the company has more than one active card, ask which. Ask once for what the card doesn't say: the round (recruiter screen, technical, system design, hiring manager, final), the date, and the interviewers' names if known.
+Match the user's words to a card with `jobs list --company "<Company>"`, where `jobs` means `python3 "<root>/LaunchPad App/jobs_store.py"` (the only way to read or change jobs; never edit `data.json`). If the company has more than one active card, ask which. Ask once for what the card doesn't say: the round (recruiter screen, technical, system design, hiring manager, final), the date, and the interviewers' names if known.
 
 ## 2. Gather what's already here
 
@@ -92,7 +92,7 @@ Keep it to what a person can hold in their head: five to eight stories, not twen
 
 ## 5. Link it on the card
 
-Set on the card: `prepMD` (the full markdown, which powers the card's 🎯 Interview prep viewer), `prepPath` (`Interview Prep/<Company> - <Role>.md`), and append `[prep: <today> — <round>]` to `notes`. Write through the tracker server when it's running (GET `/data.json`, change the one card, POST the full array to `/save` with `X-Base-Revision`); otherwise edit `Data/data.json`. Keep every other card and field.
+Set on the card with `jobs update <id>`: `prepMD` (the full markdown, which powers the Interview prep viewer in the job's panel) and `prepPath` (`Interview Prep/<Company> - <Role>.md`). Pass the JSON on stdin from a file or a here-document, since the markdown is long. Then `jobs note <id> "[prep: <today> — <round>]"`.
 
 ## 6. Report
 

@@ -47,10 +47,17 @@ Neither skill's Send section covers the other's list. Running just one of them (
     - Setting `attachmentSource` resets `attachment` (to `baseResumePath` for `base`) and clears `askApproved`.
   - `quota`: prints requests today and this week, and notes sent and selected, with what remains under each limit (`null` when that limit is off).
   - It writes through the tracker server when it's running (so an open People screen stays in sync), and straight to the file otherwise.
-- **Tracker jobs** (`Data/data.json`, or `LaunchPad App/data.json` on older installs):
-  - If `curl -s -m 2 http://localhost:8787/health` returns ok, GET `http://localhost:8787/data.json`, change the array, and POST the full array to `/save` with `Content-Type: application/json`.
-  - Otherwise, edit the file directly.
-  - Either way, keep every existing entry and field.
+- **Jobs** go only through `jobs`, which means `python3 "<root>/LaunchPad App/jobs_store.py"`. Never hand-edit `data.json`, and never POST to the server yourself.
+  - `list [--status S[,S…]] [--company C] [--id ID] [--fields a,b,…]`: prints jobs as JSON. The long document fields are left out unless you pass `--full` or `--id`.
+  - `find --company C --role R [--url U]`: prints jobs that are the same posting (same company and role, or the same link). Empty means it is new.
+  - `add`: takes a JSON array of new jobs on stdin.
+    - Required: `company`. Give what you know of `role`, `location`, `arrangement` (`Remote`, `Hybrid` or `Onsite`), `url`, `salary`, `tier` (`A`, `B` or `C`), `fitScore` (0 to 100), `fitBreakdown`, `notes`, `source`.
+    - Leave out `id`, `dateAdded` and `status`: the tool sets them (status `Screening`).
+    - A job already on the board is skipped and listed under `skipped`.
+  - `update <id>`: takes a JSON object of fields on stdin. Only those fields change.
+  - `move <id> <status>`: changes the status and stamps the dates that follow (applied date and follow-up for `Applied`, closed date for a closed status). An unknown status is refused, and the error lists the valid ones.
+  - `note <id> "<text>"`: appends to the job's notes. Never rewrite notes with `update`.
+  - It writes through the tracker server when it's running (so an open tracker stays in sync), and straight to the file otherwise. If the jobs changed underneath it, it retries once and then fails rather than overwrite; re-run the command.
 - **Commit** at the end of each run, only if git is set up (it's optional; skip silently otherwise). Run from `<root>`:
   ```bash
   if git -C "LaunchPad App" rev-parse >/dev/null 2>&1; then

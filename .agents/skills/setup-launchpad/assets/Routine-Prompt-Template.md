@@ -28,7 +28,7 @@ EVENING RUN
 Acceptance check, reply check and drafts (steps 2 and 4), sending per step 5, then cleanup: run `python3 "LaunchPad App/cleanup.py"` and paste its report. No job search.
 
 RULES FOR EVERY RUN
-- Change `Data/data.json` and `Data/contacts.json` only through the tracker server or `store`, as the skills describe. Never remove a card or a person; closed items are archived by the cleanup.
+- Change jobs only with `jobs` (`python3 "LaunchPad App/jobs_store.py"`) and people only with `store` (`python3 "LaunchPad App/contacts_store.py"`), as the skills describe. Never edit `Data/data.json` or `Data/contacts.json` yourself. Never remove a card or a person; closed items are archived by the cleanup.
 - Every claim in a drafted message must be backed by `Resume/Master-Resume.md`. Never invent a skill, a number or an employer.
 - Save every posting you assess and each run's review file inside `Job Listings/`. Never create files at the repository root.
 - Never print, commit or ask for a password or a token.

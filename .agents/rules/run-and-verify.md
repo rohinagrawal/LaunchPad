@@ -29,6 +29,7 @@ LaunchPad is a uv-managed Python project with no dependencies and no build step.
 uv run tracker.py
 uv run Demo/demo_people.py --port 8799
 curl -s http://localhost:8787/health
+uv run "LaunchPad App/jobs_store.py" list --status "To Apply"
 uv run "LaunchPad App/contacts_store.py" list
 python3 "LaunchPad App/preflight.py"
 python3 .agents/scripts/validate-agent-assets.py --mode adapters
