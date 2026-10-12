@@ -35,7 +35,7 @@ It only reads; it changes nothing. It prints one line per check (`OK`, `WARN` or
 Do these only for a run that needs them, and stop on the first one that fails.
 
 - **Browser, for LinkedIn steps:** open `https://www.linkedin.com/feed/` in the browser the run will use (built-in first; see Outreach-Rules.md). It must show the signed-in feed. A login wall, security checkpoint or CAPTCHA is a hard stop: report it and do nothing else on LinkedIn.
-- **File upload, for messages that attach a resume:** the upload tool lives in Claude in Chrome. If it isn't connected, say so before drafting sends, so the user can connect it; draft-only steps can still run.
+- **File upload, for messages that attach a resume:** the upload tool lives in Claude in Chrome. If it isn't connected, start Chrome and check again (see "Browser" in Outreach-Rules.md). If it still isn't, say so before drafting sends, so the user can connect it; draft-only steps can still run.
 - **Email, for the reply monitor or email outreach:** confirm an email connector is connected by listing one recent message. If none is connected, skip those steps and say so.
 - **Data freshness, when the tracker is also hosted:** `git pull --rebase --autostash` before editing anything under `Data/`, so saves made on the hosted copy are present. Never force-push.
 
