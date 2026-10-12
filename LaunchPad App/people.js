@@ -1,7 +1,7 @@
 /* People screen: the referral contacts pipeline (contacts.json) as a kanban, plus the person
    panel that opens from a card, a table row, a job or a company.
    Rules live in people-core.js. Uses these globals from index.html:
-   state, today, serverMode, localServer, dataset, esc, toast, openExternal, render, setView, setDataset,
+   state, today, serverMode, localServer, dataset, esc, toast, openExternal, render, setView, setDataset, serverFetch,
    and window.syncReady (resolves once server detection has finished). */
 var People = (function () {
   var CACHE_KEY = 'launchpad_contacts_v1';
@@ -44,7 +44,9 @@ var People = (function () {
                              : 'Start the tracker server so changes reach contacts.json.') + '</span>';
   }
 
+  // Kept in the browser only when there is no server; with one, the server's copy is the only one.
   function cache() {
+    if (serverMode) return;
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(contacts)); } catch (e) {}
   }
 
@@ -54,7 +56,7 @@ var People = (function () {
   async function reload() {
     if (!serverMode) return;
     try {
-      var r = await fetch('contacts.json', { cache: 'no-store' });
+      var r = await serverFetch('contacts.json', { cache: 'no-store' });
       if (!r.ok) throw new Error('HTTP ' + r.status);
       contacts = await r.json();
       revision = r.headers.get('X-Contacts-Revision') || '';
@@ -78,7 +80,7 @@ var People = (function () {
     if (writing) { pending = true; return; }
     writing = true;
     try {
-      var r = await fetch('save-contacts', {
+      var r = await serverFetch('save-contacts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-Base-Revision': revision },
         body: JSON.stringify(contacts)
@@ -107,9 +109,12 @@ var People = (function () {
 
   function commit() { save(); render(); }
 
+  var reloading = false;   // one refresh at a time while a sleeping server wakes
+
   function maybeReload() {
-    if (!serverMode || writing) return;
-    reload();
+    if (!serverMode || writing || reloading) return;
+    reloading = true;
+    reload().then(function () { reloading = false; }, function () { reloading = false; });
   }
 
   function onVisibilityChange() {
@@ -562,7 +567,7 @@ var People = (function () {
     if (!file) return;
     if (!serverMode) { toast('Uploading needs the tracker server running.'); return; }
     try {
-      var r = await fetch('upload-attachment?contact=' + encodeURIComponent(c.id) + '&name=' + encodeURIComponent(file.name),
+      var r = await serverFetch('upload-attachment?contact=' + encodeURIComponent(c.id) + '&name=' + encodeURIComponent(file.name),
         { method: 'POST', headers: { 'Content-Type': 'application/pdf' }, body: file });
       var j = await r.json();
       if (!r.ok || !j.ok) throw new Error(j.error || ('HTTP ' + r.status));
@@ -621,14 +626,15 @@ var People = (function () {
   }
 
   async function init() {
-    try { var raw = localStorage.getItem(CACHE_KEY); if (raw) contacts = JSON.parse(raw); } catch (e) {}
     if (serverMode) {
+      try { localStorage.removeItem(CACHE_KEY); } catch (e) {}   // a copy left by an older version
       await reload();
       try {
-        var c = await fetch('outreach-config.json', { cache: 'no-store' });
+        var c = await serverFetch('outreach-config.json', { cache: 'no-store' });
         if (c.ok) cfg = PeopleCore.withDefaults(await c.json());
       } catch (e) {}
     } else {
+      try { var raw = localStorage.getItem(CACHE_KEY); if (raw) contacts = JSON.parse(raw); } catch (e) {}
       cache();
     }
     var root = document.getElementById('people');
@@ -669,4 +675,5 @@ var People = (function () {
            config: config, baseResume: baseResume, open: open, closeDetail: closeDetail, detailOpen: detailOpen, refreshDetail: refreshDetail };
 })();
 
-window.syncReady.then(function () { People.init(); });
+// index.html waits for this before its first draw, so people are counted from the start.
+window.peopleReady = window.syncReady.then(function () { return People.init(); });

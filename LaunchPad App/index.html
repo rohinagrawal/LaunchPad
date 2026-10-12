@@ -9,6 +9,7 @@ try{var t=localStorage.getItem('launchpad_theme');if(t==='light'||t==='dark')doc
 <link rel="stylesheet" href="app.css">
 </head>
 <body>
+<div id="wakemsg" class="wakemsg" role="status" hidden>Waking the server. This can take up to a minute; nothing is lost.</div>
 <div class="app">
 <nav class="rail" aria-label="Screens">
   <div class="brand">LaunchPad<small>Job search tracker</small></div>
@@ -117,6 +118,29 @@ try{var t=localStorage.getItem('launchpad_theme');if(t==='light'||t==='dark')doc
   const nativeFetch=window.fetch.bind(window);
   window.fetch=(url,opts)=>nativeFetch(typeof url==='string'&&!/^[a-z][a-z0-9+.-]*:/i.test(url)&&!url.startsWith('/')?base+url:url,opts);
 })();
+/* A hosted server may be asleep and take up to a minute to wake. While it does, a request
+   fails or comes back 502/503/504. Every request for data therefore goes through serverFetch,
+   which keeps trying for about 90 seconds and shows that it is waiting, so a load or a save
+   made during that minute still goes through. It works the same against a local server, where
+   it simply succeeds the first time. Anything else (200, 401, 404, 409…) is returned at once. */
+const WAKE_STATUSES=[502,503,504];
+let wakeWaiters=0;
+function showWaking(on){wakeWaiters=Math.max(0,wakeWaiters+(on?1:-1));
+  const el=document.getElementById('wakemsg');if(el)el.hidden=wakeWaiters===0;}
+async function serverFetch(url,opts,limits){
+  const maxMs=(limits&&limits.maxMs)||90000,netMs=(limits&&limits.netMs)||maxMs;
+  const start=Date.now();let delay=1000,told=false;
+  try{
+    for(;;){
+      let r=null,err=null;
+      try{r=await fetch(url,opts);}catch(e){err=e;}
+      if(r&&!WAKE_STATUSES.includes(r.status))return r;
+      if(Date.now()-start+delay>(r?maxMs:netMs)){if(r)return r;throw err;}
+      if(!told){told=true;showWaking(true);}
+      await new Promise(res=>setTimeout(res,delay));delay=Math.min(Math.round(delay*1.6),8000);
+    }
+  }finally{if(told)showWaking(false);}
+}
 const SEED = [
   {
     "id": "demo-1",
@@ -236,10 +260,21 @@ function load(){
   else{state.apps=structuredClone(SEED);}
   state.apps.forEach(a=>{if(!a.id)a.id=uid();});
 }
-function cacheLocal(){try{localStorage.setItem(KEY,JSON.stringify(state.apps));}catch(e){}}
+// The browser copy is the data only when there is no server. With one, the server's copy is
+// the only one: nothing is read from or kept in the browser, so a stale copy is never shown
+// and nothing stays behind on a shared computer.
+function cacheLocal(){if(serverMode)return;try{localStorage.setItem(KEY,JSON.stringify(state.apps));}catch(e){}}
+function dropBrowserCopy(){try{localStorage.removeItem(KEY);}catch(e){}}
+// False until everything the screens count from has arrived (jobs, people, Autopilot), so each
+// screen is drawn once from complete data and never from a partial first guess.
+let loaded=false;
+const VIEWS=['ymove','board','table','people','companies','interviews','insights'];
+function renderLoading(){document.getElementById('kpis').innerHTML='';document.getElementById('dmn').textContent='';
+  VIEWS.forEach(id=>{document.getElementById(id).innerHTML='<div class="loading" role="status">Loading your tracker…</div>';});}
+function markLoaded(){if(loaded)return;loaded=true;initFilters();stamp();render();updateFileStatus();}
 let jobsSavedAt=null; // shown in the footer; only a real save updates it
 function save(){cacheLocal();jobsSavedAt=new Date();stamp();if(serverMode){persistServer();}else{persistFile();}}
-function stamp(){const f=document.getElementById('foot');const n=state.apps.length;
+function stamp(){const f=document.getElementById('foot');if(!loaded){f.innerHTML='';return;}const n=state.apps.length;
   const target=serverMode?'data.json':usingFile&&fileHandle?fileHandle.name:'this browser';
   const where=jobsSavedAt?`Saved to ${target} · ${jobsSavedAt.toLocaleString()}`:`Loaded from ${target}`;
   const tip=serverMode?'Server owns the file · rolling backups in Data/backups/.':usingFile?'Backed by a file on disk.':'Link a file or Export to back up / move devices.';
@@ -254,18 +289,21 @@ let serverMode=false, srvWriting=false, srvPending=false, dataRevision='';
 let serverLoadError=''; // set when the tracker server is there but our data couldn't be loaded
 async function initServerSync(){
   try{
-    const h=await fetch('health',{cache:'no-store'});if(!h.ok)return false;
+    if(location.protocol==='file:')return false;           // opened as a file: there is no server
+    let h;try{h=await serverFetch('health',{cache:'no-store'},{netMs:12000});}catch(e){return false;}
+    if(WAKE_STATUSES.includes(h.status)){serverLoadError='the server did not wake up (HTTP '+h.status+')';return false;}
+    if(!h.ok)return false;                                   // e.g. 404 on plain file hosting: no tracker server
     const hj=await h.json();if(!hj.ok)return false;
     // From here on a tracker server is definitely there, so a failure is an error to show,
     // never a reason to fall back to the demo rows.
     serverLoadError='could not reach the server';
-    const r=await fetch('data.json',{cache:'no-store'});
+    const r=await serverFetch('data.json',{cache:'no-store'});
     if(!r.ok){serverLoadError=r.status===401?'you are signed out; reload to sign in':'the server answered HTTP '+r.status;return false;}
     const data=await r.json();if(!Array.isArray(data)){serverLoadError='the server sent unexpected data';return false;}
     serverLoadError='';
     dataRevision=r.headers.get('X-Data-Revision')||'';
     serverMode=true;state.apps=data;state.apps.forEach(a=>{if(!a.id)a.id=uid();});
-    cacheLocal();loadAutopilot();return true;
+    dropBrowserCopy();window.autopilotReady=loadAutopilot();return true;
   }catch(e){return false;}
 }
 async function persistServer(){
@@ -273,7 +311,7 @@ async function persistServer(){
   if(srvWriting){srvPending=true;return;}
   srvWriting=true;
   try{
-    const r=await fetch('save',{method:'POST',headers:{'Content-Type':'application/json','X-Base-Revision':dataRevision},body:JSON.stringify(state.apps)});
+    const r=await serverFetch('save',{method:'POST',headers:{'Content-Type':'application/json','X-Base-Revision':dataRevision},body:JSON.stringify(state.apps)});
     const j=await r.json().catch(()=>({}));
     if(r.status===409){
       // Someone else saved first (a Claude run, another tab, or the copy on GitHub).
@@ -286,7 +324,7 @@ async function persistServer(){
     if(j.revision)dataRevision=j.revision;
     if(j.syncWarning)toast('⚠ Saved here, but not yet to GitHub — it will retry on the next save.');
   }catch(e){
-    toast('⚠ Save to data.json failed — edits are cached in this browser only. Is the tracker server running?');
+    toast('⚠ Save to data.json failed — this change is only in this open page and will be lost on reload. Is the tracker server running?',6000);
   }
   srvWriting=false;
   if(srvPending){srvPending=false;persistServer();}
@@ -294,16 +332,19 @@ async function persistServer(){
 /* Re-read data.json if it changed since we loaded it — on a 409, and when the
    tab comes back into view, so a tab left open picks up a scrub or reply check
    that ran meanwhile (and, on a hosted copy, saves from other devices). */
+let reloadingJobs=false; // one refresh at a time, however often the tab regains focus while the server wakes
 async function reloadFromServer(){
-  if(!serverMode)return;
+  if(!serverMode||reloadingJobs)return;
+  reloadingJobs=true;
   try{
-    const r=await fetch('data.json',{cache:'no-store'});if(!r.ok)return;
+    const r=await serverFetch('data.json',{cache:'no-store'});if(!r.ok)return;
     const rev=r.headers.get('X-Data-Revision')||'';
     if(rev&&rev===dataRevision)return;
     const data=await r.json();if(!Array.isArray(data))return;
     dataRevision=rev;state.apps=data;state.apps.forEach(a=>{if(!a.id)a.id=uid();});
     cacheLocal();initFilters();render();
   }catch(e){}
+  finally{reloadingJobs=false;}
 }
 function maybeReloadJobs(){if(serverMode&&!srvWriting&&!srvPending&&!editingId)reloadFromServer();}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')maybeReloadJobs();});
@@ -452,10 +493,10 @@ function ymDays(){return window.People&&People.followupDays?People.followupDays(
 function ymJob(a){return window.YourMove?YourMove.forJob(a,ymContacts(),today,ymDays(),window.AUTOPILOT):null;}
 /* Autopilot switches (Data/autopilot.json via the server). Off until you switch them on. */
 window.AUTOPILOT=null;let apRevision='';
-async function loadAutopilot(){try{const r=await fetch('autopilot.json',{cache:'no-store'});if(!r.ok)return;
+async function loadAutopilot(){try{const r=await serverFetch('autopilot.json',{cache:'no-store'});if(!r.ok)return;
   window.AUTOPILOT=await r.json();apRevision=r.headers.get('X-Autopilot-Revision')||'';render();}catch(e){}}
 async function saveAutopilot(){if(!serverMode||!window.AUTOPILOT)return;
-  try{const r=await fetch('save-autopilot',{method:'POST',headers:{'Content-Type':'application/json','X-Base-Revision':apRevision},body:JSON.stringify(window.AUTOPILOT)});
+  try{const r=await serverFetch('save-autopilot',{method:'POST',headers:{'Content-Type':'application/json','X-Base-Revision':apRevision},body:JSON.stringify(window.AUTOPILOT)});
     const j=await r.json().catch(()=>({}));
     if(r.status===409){await loadAutopilot();toast('Autopilot settings changed elsewhere — reloaded. Please redo your change.');return;}
     if(!r.ok)throw new Error(j.error||('HTTP '+r.status));
@@ -660,6 +701,7 @@ function renderTable(list){
 function sortBy(k){if(sortKey===k)sortDir*=-1;else{sortKey=k;sortDir=1;}render();}
 
 function render(){
+  if(!loaded){renderLoading();return;}
   const list=visible(state.apps);
   kpis(state.apps);
   ymCounts();
@@ -786,6 +828,7 @@ function renderDocCtrl(){
 /* ---------- edit modal ---------- */
 function fillStatusSelect(){document.getElementById('f_status').innerHTML=ALL_STATUSES.map(s=>`<option>${s}</option>`).join('');}
 function openEdit(id){
+  if(!loaded)return; // nothing to add to until the data has arrived
   editFrom=id&&window.Screens&&Screens.jobId()===id?id:null;if(window.Screens)Screens.closeJob();
   editingId=id;
   const a=id?state.apps.find(x=>x.id===id):{};
@@ -852,7 +895,6 @@ paintTheme();
 document.getElementById('btnMore').addEventListener('click',e=>{e.stopPropagation();document.getElementById('moremenu').classList.toggle('show');});
 document.addEventListener('click',()=>document.getElementById('moremenu').classList.remove('show'));
 fillStatusSelect();
-load();
 loadColPrefs();
 initFilters();
 readHash();
@@ -863,7 +905,7 @@ document.getElementById('btnCols').addEventListener('click',e=>{e.stopPropagatio
 document.addEventListener('click',e=>{if(!e.target.closest('#colwrap'))document.getElementById('colmenu').classList.remove('show');});
 /* The server is there but the data didn't load: show that plainly instead of demo rows. */
 function showLoadError(){
-  state.apps=[];render();
+  loaded=true;state.apps=[];render();
   const chip=document.getElementById('filestat');chip.textContent='⚠ data.json · not loaded';chip.className='filechip warn';
   const w=document.createElement('div');w.id='loadwarn';
   w.className='banner';
@@ -871,10 +913,12 @@ function showLoadError(){
     '. Nothing shown here is your data, and changes will not be saved. <button class="btn" onclick="location.reload()">Reload</button>';
   document.querySelector('.controls').before(w);
 }
+// With a server, the first draw waits for people and Autopilot too (see the last script on
+// this page). With none, the browser's own copy is the data.
 window.syncReady=initServerSync().then(ok=>{
-  if(ok){initFilters();stamp();render();updateFileStatus();}
-  else if(serverLoadError){showLoadError();}
-  else{initFileSync();}
+  if(ok)return ok;
+  if(serverLoadError){showLoadError();}
+  else{load();initFileSync();}
   return ok;
 });
 </script>
@@ -885,5 +929,7 @@ window.syncReady=initServerSync().then(ok=>{
 <script src="companies.js"></script>
 <script src="interviews.js"></script>
 <script src="screens.js"></script>
+<script>/* Every script has run: draw once jobs, people and Autopilot have all arrived. */
+window.syncReady.then(()=>Promise.all([window.peopleReady,window.autopilotReady]).catch(()=>{})).then(markLoaded);</script>
 </body>
 </html>

@@ -103,8 +103,14 @@ or in a bar along the bottom on a phone. The tracker opens on Today.
 2. **Linked file** — on static hosting (or `file://`), Chrome-family browsers
    can link a `data.json` via the File System Access API (**Open file** /
    **Save As file** buttons).
-3. **Browser storage** — the always-on fallback; edits persist in
-   `localStorage` (key `launchpad_v1`).
+3. **Browser storage** — only when there is no server and no linked file;
+   edits persist in `localStorage` (key `launchpad_v1`).
+
+With a server, nothing of your jobs or people is read from or kept in the
+browser: every screen waits for the server's jobs, people and Autopilot
+settings and is drawn once from them. Only preferences stay in the browser
+(theme, hidden and collapsed columns). The sign-in page clears any copy an
+older version left behind.
 
 **Always available:** **Export** (JSON snapshot), **Import** (restore/replace),
 and **CSV** for spreadsheets.

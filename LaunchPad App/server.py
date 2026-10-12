@@ -118,7 +118,9 @@ button{margin-top:12px;width:100%;padding:9px;border:0;border-radius:8px;backgro
 .err{color:#b3261e;font-size:13px;margin:10px 0 0}</style></head><body>
 <form method="post" action="login"><h1>LaunchPad</h1><p>Enter the tracker password to continue.</p>
 <input type="password" name="password" autocomplete="current-password" placeholder="Password" autofocus required>
-<button type="submit">Sign in</button>__ERROR__</form></body></html>"""
+<button type="submit">Sign in</button>__ERROR__</form>
+<script>/* Signed out: leave no copy of the jobs or people in this browser (older versions kept one). */
+try{localStorage.removeItem("launchpad_v1");localStorage.removeItem("launchpad_contacts_v1");}catch(e){}</script></body></html>"""
 LOOPBACK_HOSTS = ("127.0.0.1", "localhost", "::1")
 
 

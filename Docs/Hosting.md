@@ -44,6 +44,7 @@ In Render, create a **Web Service** from your repository, branch `main`, with th
 
 ## Living with a hosted copy
 
+- **A sleeping host is fine.** A free host stops the server when nobody is using it and takes up to a minute to start it again. The page waits for it: it shows "Waking the server" and keeps trying for about 90 seconds, for loading and for saving, so a change made while it wakes still goes through.
 - **Pull first.** Run `git pull --rebase --autostash` before changing data locally. The daily routine does this for you.
 - **Never force-push `main`.** The host commits to it.
 - **If two saves collide**, the later one is refused and the page reloads with the latest data; redo the change. Nothing is overwritten.
