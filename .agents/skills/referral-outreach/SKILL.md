@@ -39,7 +39,7 @@ Save a resolved file with `store update <id>` and `{"attachment": "<path relativ
 For each Connected contact whose `askMessage` is empty, use `ask-recruiter.md` if `relation` is `recruiter`, and `ask-engineer.md` otherwise. Fill in:
 - `{first_name}` from the contact.
 - `{role}` and `{company}` from the linked card.
-- `{job_link}` from the card's `url`, on a line of its own (see "Writing messages" in Outreach-Rules.md).
+- `{job_link}`: the direct link to the job description, on a line of its own. Start from the card's `url` and resolve it to the page it finally lands on, with no redirect or tracking parameters (see "Writing messages" in Outreach-Rules.md).
 - `{job_id}` from the posting, if it shows one.
 - `{intro}` and `{sender_name}` from `Resume/Master-Resume.md`.
 - `{fit_points}`:
