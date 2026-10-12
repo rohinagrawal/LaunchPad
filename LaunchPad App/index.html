@@ -9,6 +9,7 @@ try{var t=localStorage.getItem('launchpad_theme');if(t==='light'||t==='dark')doc
 <link rel="stylesheet" href="app.css">
 </head>
 <body>
+<div id="wakemsg" class="wakemsg" role="status" hidden>Waking the server. This can take up to a minute; nothing is lost.</div>
 <div class="app">
 <nav class="rail" aria-label="Screens">
   <div class="brand">LaunchPad<small>Job search tracker</small></div>
@@ -117,6 +118,29 @@ try{var t=localStorage.getItem('launchpad_theme');if(t==='light'||t==='dark')doc
   const nativeFetch=window.fetch.bind(window);
   window.fetch=(url,opts)=>nativeFetch(typeof url==='string'&&!/^[a-z][a-z0-9+.-]*:/i.test(url)&&!url.startsWith('/')?base+url:url,opts);
 })();
+/* A hosted server may be asleep and take up to a minute to wake. While it does, a request
+   fails or comes back 502/503/504. Every request for data therefore goes through serverFetch,
+   which keeps trying for about 90 seconds and shows that it is waiting, so a load or a save
+   made during that minute still goes through. It works the same against a local server, where
+   it simply succeeds the first time. Anything else (200, 401, 404, 409…) is returned at once. */
+const WAKE_STATUSES=[502,503,504];
+let wakeWaiters=0;
+function showWaking(on){wakeWaiters=Math.max(0,wakeWaiters+(on?1:-1));
+  const el=document.getElementById('wakemsg');if(el)el.hidden=wakeWaiters===0;}
+async function serverFetch(url,opts,limits){
+  const maxMs=(limits&&limits.maxMs)||90000,netMs=(limits&&limits.netMs)||maxMs;
+  const start=Date.now();let delay=1000,told=false;
+  try{
+    for(;;){
+      let r=null,err=null;
+      try{r=await fetch(url,opts);}catch(e){err=e;}
+      if(r&&!WAKE_STATUSES.includes(r.status))return r;
+      if(Date.now()-start+delay>(r?maxMs:netMs)){if(r)return r;throw err;}
+      if(!told){told=true;showWaking(true);}
+      await new Promise(res=>setTimeout(res,delay));delay=Math.min(Math.round(delay*1.6),8000);
+    }
+  }finally{if(told)showWaking(false);}
+}
 const SEED = [
   {
     "id": "demo-1",
@@ -265,12 +289,15 @@ let serverMode=false, srvWriting=false, srvPending=false, dataRevision='';
 let serverLoadError=''; // set when the tracker server is there but our data couldn't be loaded
 async function initServerSync(){
   try{
-    const h=await fetch('health',{cache:'no-store'});if(!h.ok)return false;
+    if(location.protocol==='file:')return false;           // opened as a file: there is no server
+    let h;try{h=await serverFetch('health',{cache:'no-store'},{netMs:12000});}catch(e){return false;}
+    if(WAKE_STATUSES.includes(h.status)){serverLoadError='the server did not wake up (HTTP '+h.status+')';return false;}
+    if(!h.ok)return false;                                   // e.g. 404 on plain file hosting: no tracker server
     const hj=await h.json();if(!hj.ok)return false;
     // From here on a tracker server is definitely there, so a failure is an error to show,
     // never a reason to fall back to the demo rows.
     serverLoadError='could not reach the server';
-    const r=await fetch('data.json',{cache:'no-store'});
+    const r=await serverFetch('data.json',{cache:'no-store'});
     if(!r.ok){serverLoadError=r.status===401?'you are signed out; reload to sign in':'the server answered HTTP '+r.status;return false;}
     const data=await r.json();if(!Array.isArray(data)){serverLoadError='the server sent unexpected data';return false;}
     serverLoadError='';
@@ -284,7 +311,7 @@ async function persistServer(){
   if(srvWriting){srvPending=true;return;}
   srvWriting=true;
   try{
-    const r=await fetch('save',{method:'POST',headers:{'Content-Type':'application/json','X-Base-Revision':dataRevision},body:JSON.stringify(state.apps)});
+    const r=await serverFetch('save',{method:'POST',headers:{'Content-Type':'application/json','X-Base-Revision':dataRevision},body:JSON.stringify(state.apps)});
     const j=await r.json().catch(()=>({}));
     if(r.status===409){
       // Someone else saved first (a Claude run, another tab, or the copy on GitHub).
@@ -305,16 +332,19 @@ async function persistServer(){
 /* Re-read data.json if it changed since we loaded it — on a 409, and when the
    tab comes back into view, so a tab left open picks up a scrub or reply check
    that ran meanwhile (and, on a hosted copy, saves from other devices). */
+let reloadingJobs=false; // one refresh at a time, however often the tab regains focus while the server wakes
 async function reloadFromServer(){
-  if(!serverMode)return;
+  if(!serverMode||reloadingJobs)return;
+  reloadingJobs=true;
   try{
-    const r=await fetch('data.json',{cache:'no-store'});if(!r.ok)return;
+    const r=await serverFetch('data.json',{cache:'no-store'});if(!r.ok)return;
     const rev=r.headers.get('X-Data-Revision')||'';
     if(rev&&rev===dataRevision)return;
     const data=await r.json();if(!Array.isArray(data))return;
     dataRevision=rev;state.apps=data;state.apps.forEach(a=>{if(!a.id)a.id=uid();});
     cacheLocal();initFilters();render();
   }catch(e){}
+  finally{reloadingJobs=false;}
 }
 function maybeReloadJobs(){if(serverMode&&!srvWriting&&!srvPending&&!editingId)reloadFromServer();}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')maybeReloadJobs();});
@@ -463,10 +493,10 @@ function ymDays(){return window.People&&People.followupDays?People.followupDays(
 function ymJob(a){return window.YourMove?YourMove.forJob(a,ymContacts(),today,ymDays(),window.AUTOPILOT):null;}
 /* Autopilot switches (Data/autopilot.json via the server). Off until you switch them on. */
 window.AUTOPILOT=null;let apRevision='';
-async function loadAutopilot(){try{const r=await fetch('autopilot.json',{cache:'no-store'});if(!r.ok)return;
+async function loadAutopilot(){try{const r=await serverFetch('autopilot.json',{cache:'no-store'});if(!r.ok)return;
   window.AUTOPILOT=await r.json();apRevision=r.headers.get('X-Autopilot-Revision')||'';render();}catch(e){}}
 async function saveAutopilot(){if(!serverMode||!window.AUTOPILOT)return;
-  try{const r=await fetch('save-autopilot',{method:'POST',headers:{'Content-Type':'application/json','X-Base-Revision':apRevision},body:JSON.stringify(window.AUTOPILOT)});
+  try{const r=await serverFetch('save-autopilot',{method:'POST',headers:{'Content-Type':'application/json','X-Base-Revision':apRevision},body:JSON.stringify(window.AUTOPILOT)});
     const j=await r.json().catch(()=>({}));
     if(r.status===409){await loadAutopilot();toast('Autopilot settings changed elsewhere — reloaded. Please redo your change.');return;}
     if(!r.ok)throw new Error(j.error||('HTTP '+r.status));
