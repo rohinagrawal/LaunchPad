@@ -236,10 +236,21 @@ function load(){
   else{state.apps=structuredClone(SEED);}
   state.apps.forEach(a=>{if(!a.id)a.id=uid();});
 }
-function cacheLocal(){try{localStorage.setItem(KEY,JSON.stringify(state.apps));}catch(e){}}
+// The browser copy is the data only when there is no server. With one, the server's copy is
+// the only one: nothing is read from or kept in the browser, so a stale copy is never shown
+// and nothing stays behind on a shared computer.
+function cacheLocal(){if(serverMode)return;try{localStorage.setItem(KEY,JSON.stringify(state.apps));}catch(e){}}
+function dropBrowserCopy(){try{localStorage.removeItem(KEY);}catch(e){}}
+// False until everything the screens count from has arrived (jobs, people, Autopilot), so each
+// screen is drawn once from complete data and never from a partial first guess.
+let loaded=false;
+const VIEWS=['ymove','board','table','people','companies','interviews','insights'];
+function renderLoading(){document.getElementById('kpis').innerHTML='';document.getElementById('dmn').textContent='';
+  VIEWS.forEach(id=>{document.getElementById(id).innerHTML='<div class="loading" role="status">Loading your tracker…</div>';});}
+function markLoaded(){if(loaded)return;loaded=true;initFilters();stamp();render();updateFileStatus();}
 let jobsSavedAt=null; // shown in the footer; only a real save updates it
 function save(){cacheLocal();jobsSavedAt=new Date();stamp();if(serverMode){persistServer();}else{persistFile();}}
-function stamp(){const f=document.getElementById('foot');const n=state.apps.length;
+function stamp(){const f=document.getElementById('foot');if(!loaded){f.innerHTML='';return;}const n=state.apps.length;
   const target=serverMode?'data.json':usingFile&&fileHandle?fileHandle.name:'this browser';
   const where=jobsSavedAt?`Saved to ${target} · ${jobsSavedAt.toLocaleString()}`:`Loaded from ${target}`;
   const tip=serverMode?'Server owns the file · rolling backups in Data/backups/.':usingFile?'Backed by a file on disk.':'Link a file or Export to back up / move devices.';
@@ -265,7 +276,7 @@ async function initServerSync(){
     serverLoadError='';
     dataRevision=r.headers.get('X-Data-Revision')||'';
     serverMode=true;state.apps=data;state.apps.forEach(a=>{if(!a.id)a.id=uid();});
-    cacheLocal();loadAutopilot();return true;
+    dropBrowserCopy();window.autopilotReady=loadAutopilot();return true;
   }catch(e){return false;}
 }
 async function persistServer(){
@@ -286,7 +297,7 @@ async function persistServer(){
     if(j.revision)dataRevision=j.revision;
     if(j.syncWarning)toast('⚠ Saved here, but not yet to GitHub — it will retry on the next save.');
   }catch(e){
-    toast('⚠ Save to data.json failed — edits are cached in this browser only. Is the tracker server running?');
+    toast('⚠ Save to data.json failed — this change is only in this open page and will be lost on reload. Is the tracker server running?',6000);
   }
   srvWriting=false;
   if(srvPending){srvPending=false;persistServer();}
@@ -660,6 +671,7 @@ function renderTable(list){
 function sortBy(k){if(sortKey===k)sortDir*=-1;else{sortKey=k;sortDir=1;}render();}
 
 function render(){
+  if(!loaded){renderLoading();return;}
   const list=visible(state.apps);
   kpis(state.apps);
   ymCounts();
@@ -786,6 +798,7 @@ function renderDocCtrl(){
 /* ---------- edit modal ---------- */
 function fillStatusSelect(){document.getElementById('f_status').innerHTML=ALL_STATUSES.map(s=>`<option>${s}</option>`).join('');}
 function openEdit(id){
+  if(!loaded)return; // nothing to add to until the data has arrived
   editFrom=id&&window.Screens&&Screens.jobId()===id?id:null;if(window.Screens)Screens.closeJob();
   editingId=id;
   const a=id?state.apps.find(x=>x.id===id):{};
@@ -852,7 +865,6 @@ paintTheme();
 document.getElementById('btnMore').addEventListener('click',e=>{e.stopPropagation();document.getElementById('moremenu').classList.toggle('show');});
 document.addEventListener('click',()=>document.getElementById('moremenu').classList.remove('show'));
 fillStatusSelect();
-load();
 loadColPrefs();
 initFilters();
 readHash();
@@ -863,7 +875,7 @@ document.getElementById('btnCols').addEventListener('click',e=>{e.stopPropagatio
 document.addEventListener('click',e=>{if(!e.target.closest('#colwrap'))document.getElementById('colmenu').classList.remove('show');});
 /* The server is there but the data didn't load: show that plainly instead of demo rows. */
 function showLoadError(){
-  state.apps=[];render();
+  loaded=true;state.apps=[];render();
   const chip=document.getElementById('filestat');chip.textContent='⚠ data.json · not loaded';chip.className='filechip warn';
   const w=document.createElement('div');w.id='loadwarn';
   w.className='banner';
@@ -871,10 +883,12 @@ function showLoadError(){
     '. Nothing shown here is your data, and changes will not be saved. <button class="btn" onclick="location.reload()">Reload</button>';
   document.querySelector('.controls').before(w);
 }
+// With a server, the first draw waits for people and Autopilot too (see the last script on
+// this page). With none, the browser's own copy is the data.
 window.syncReady=initServerSync().then(ok=>{
-  if(ok){initFilters();stamp();render();updateFileStatus();}
-  else if(serverLoadError){showLoadError();}
-  else{initFileSync();}
+  if(ok)return ok;
+  if(serverLoadError){showLoadError();}
+  else{load();initFileSync();}
   return ok;
 });
 </script>
@@ -885,5 +899,7 @@ window.syncReady=initServerSync().then(ok=>{
 <script src="companies.js"></script>
 <script src="interviews.js"></script>
 <script src="screens.js"></script>
+<script>/* Every script has run: draw once jobs, people and Autopilot have all arrived. */
+window.syncReady.then(()=>Promise.all([window.peopleReady,window.autopilotReady]).catch(()=>{})).then(markLoaded);</script>
 </body>
 </html>

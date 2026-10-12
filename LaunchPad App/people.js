@@ -44,7 +44,9 @@ var People = (function () {
                              : 'Start the tracker server so changes reach contacts.json.') + '</span>';
   }
 
+  // Kept in the browser only when there is no server; with one, the server's copy is the only one.
   function cache() {
+    if (serverMode) return;
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(contacts)); } catch (e) {}
   }
 
@@ -621,14 +623,15 @@ var People = (function () {
   }
 
   async function init() {
-    try { var raw = localStorage.getItem(CACHE_KEY); if (raw) contacts = JSON.parse(raw); } catch (e) {}
     if (serverMode) {
+      try { localStorage.removeItem(CACHE_KEY); } catch (e) {}   // a copy left by an older version
       await reload();
       try {
         var c = await fetch('outreach-config.json', { cache: 'no-store' });
         if (c.ok) cfg = PeopleCore.withDefaults(await c.json());
       } catch (e) {}
     } else {
+      try { var raw = localStorage.getItem(CACHE_KEY); if (raw) contacts = JSON.parse(raw); } catch (e) {}
       cache();
     }
     var root = document.getElementById('people');
@@ -669,4 +672,5 @@ var People = (function () {
            config: config, baseResume: baseResume, open: open, closeDetail: closeDetail, detailOpen: detailOpen, refreshDetail: refreshDetail };
 })();
 
-window.syncReady.then(function () { People.init(); });
+// index.html waits for this before its first draw, so people are counted from the start.
+window.peopleReady = window.syncReady.then(function () { return People.init(); });
