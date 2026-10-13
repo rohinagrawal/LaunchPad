@@ -588,17 +588,15 @@ function renderYourMove(){const el=document.getElementById('ymove');if(!el||!win
   el.innerHTML=`<div class="ympage">${hero}${h}${autopilotCard()}</div>`;
   el.querySelectorAll('[data-ym]').forEach(n=>n.addEventListener('click',()=>ymGo(s.lines[+n.dataset.ym].target)));
   el.querySelectorAll('[data-job]').forEach(n=>n.addEventListener('click',()=>ymGo({type:'job',id:n.dataset.job})));}
+// A line about one job or one person opens that panel right here, so you stay on Today and
+// carry on down the list. A line about a group goes to the screen that lists the group.
 function ymGo(tg){
-  if(tg.type==='people'){setDataset('people');return;}
+  if(tg.type==='people'){if(tg.id&&window.People&&People.open(tg.id))return;setDataset('people');return;}
+  if(tg.type==='job'){if(window.Screens)Screens.openJob(tg.id);return;}
   if(dataset!=='jobs')setDataset('jobs');
   if(tg.type==='autoapproved'){document.getElementById('sf').value='';document.getElementById('q').value='autopilot';if(view!=='board')setView('board');else render();return;}
   if(tg.type==='autoclosed'){document.getElementById('sf').value='';document.getElementById('sc').checked=false;document.getElementById('q').value='auto-closed';if(view!=='board')setView('board');else render();return;}
-  if(tg.type==='screening'){document.getElementById('sf').value='Screening';if(view!=='board')setView('board');else render();return;}
-  if(tg.type==='job'){document.getElementById('sf').value='';document.getElementById('q').value='';
-    const a=state.apps.find(x=>x.id===tg.id);if(a){const st=stageOf(a.status);collapsedCols.delete(st);hiddenCols.delete(st);}
-    if(view!=='board')setView('board');else render();
-    const el=document.querySelector(`.cardx[data-id="${tg.id}"]`);if(el)el.scrollIntoView({block:'center',inline:'center'});
-    if(window.Screens)Screens.openJob(tg.id);}}
+  if(tg.type==='screening'){document.getElementById('sf').value='Screening';if(view!=='board')setView('board');else render();return;}}
 /* Why a role scored what it did: six parts, 0-5 each, written by the search skills into
    fitBreakdown. Shown only when a card has them; fitScore stays the overall judgment. */
 const FIT_PARTS=[['role','Role','The day-to-day work against your target titles'],['skills','Skills','Must-have skills your resume covers'],
