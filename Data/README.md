@@ -12,7 +12,7 @@ Everything the tracker stores, kept apart from the app in `LaunchPad App/`.
 Optional fields the skills add (cards and people without them work as before):
 
 - On a job: `fitBreakdown` (six parts, 0–5 each: `role`, `skills`, `level`, `pay`, `location`, `posting`), and `prepMD` / `prepPath` for an interview-prep document.
-- On a person: `email`, `emailSource` (where the address was published) and `channel` (`linkedin` or `email`); `replyMessage` (the drafted reply to someone who answered) `replyApproved` (the **Approve reply** tick) and `replySkipped` (**No reply needed**).
+- On a person: `email`, `emailSource` (where the address was published) and `channel` (`linkedin` or `email`); `replyMessage` (the drafted reply to someone who answered) `replyApproved` (the **Approve reply** tick) and `replyDone` (nothing is owed on their latest message: the reply was sent, or you chose **No reply needed**; a newer message from them clears it) with `dateLastReply` (when they last wrote; `dateReplied` stays their first reply).
 
 Rules:
 

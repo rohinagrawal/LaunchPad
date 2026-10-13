@@ -114,16 +114,18 @@ var YourMove = (function () {
      replies) are still approved in the People tab; the tracker never sends anything. */
   function forContact(c, apps, ap) {
     var answered = c.stage === 'Referred' || (c.stage === 'Asked' && c.dateReplied);
-    // The user said this person needs no reply: nothing is pending with them.
-    if (answered && c.replySkipped) return null;
+    var wrote = String(c.dateLastReply || c.dateReplied || '').slice(0, 10);
+    // Nothing is owed on their latest message: the reply was sent, or the user chose to send none.
+    // A newer message from them clears replyDone (contacts_store.py), and they show up here again.
+    if (answered && c.replyDone) return null;
     if (answered && replyDraft(c).trim()) {
-      var said = c.stage === 'Referred' ? ' agreed to refer' : ' replied on ' + String(c.dateReplied).slice(0, 10);
+      var said = c.stage === 'Referred' ? ' agreed to refer' : ' replied on ' + wrote;
       return c.replyApproved
         ? { level: 'wait', verb: 'Reply ready to send', why: 'Reply approved — it goes out on the next run' }
         : { level: 'red', verb: 'Approve reply', why: first(c.name) + said + ' — read the drafted reply and tick Approve reply' };
     }
     if (c.stage === 'Referred') return { level: 'red', verb: 'Send details', why: first(c.name) + ' agreed to refer — send the job link and referral note' };
-    if (c.stage === 'Asked' && c.dateReplied) return { level: 'red', verb: 'Reply', why: first(c.name) + ' replied on ' + String(c.dateReplied).slice(0, 10) + ' — no reply is drafted yet' };
+    if (c.stage === 'Asked' && c.dateReplied) return { level: 'red', verb: 'Reply', why: first(c.name) + ' replied on ' + wrote + ' — no reply is drafted yet' };
     if (autoSends(c, ap)) {
       var h = autopilot(ap).messages.holdHours;
       return { level: 'wait', verb: 'Auto-sends', why: 'Autopilot sends this ' + (pendingMessage(c) === 'ask' ? 'ask' : 'follow-up') +

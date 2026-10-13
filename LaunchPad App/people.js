@@ -308,12 +308,13 @@ var People = (function () {
   function replySection(c) {
     var draft = PeopleCore.replyDraft(c);
     var answered = c.stage === 'Referred' || (c.stage === 'Asked' && c.dateReplied);
-    if (!draft.trim() && (!answered || /\[reply sent/.test(c.notes || ''))) return '';
-    if (c.replySkipped) {
-      return '<p class="pnotes">No reply needed. <span class="minibtn" data-act="replyundo">Undo</span></p>';
+    if (!draft.trim() && !answered) return '';
+    if (c.replyDone) {
+      return '<p class="pnotes">Nothing to reply to' + (c.dateLastReply || c.dateReplied ? ' since their message of ' + esc(String(c.dateLastReply || c.dateReplied).slice(0, 10)) : '') +
+        '. They show up on Today again if they write. <span class="minibtn" data-act="replyundo">Reopen</span></p>';
     }
     var email = PeopleCore.channelOf(c) === 'email';
-    return '<label>Your reply' + (c.dateReplied ? ' <em>· they replied ' + esc(String(c.dateReplied).slice(0, 10)) + '</em>' : '') + '</label>' +
+    return '<label>Your reply' + (c.dateLastReply || c.dateReplied ? ' <em>· they replied ' + esc(String(c.dateLastReply || c.dateReplied).slice(0, 10)) + '</em>' : '') + '</label>' +
       '<textarea data-act="reply" placeholder="No reply drafted yet. Write one here, or ask Claude to draft it.">' + esc(draft) + '</textarea>' +
       '<label class="ptoggle"><input type="checkbox" data-act="replyok"' + (c.replyApproved ? ' checked' : '') +
       (draft.trim() ? '' : ' disabled') + '> Approve reply' +

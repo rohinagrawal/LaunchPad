@@ -16,11 +16,11 @@ Read `Outreach-Rules.md` (next to this file) first; it applies to every step (in
 
 ### 1. Replies
 
-Run `store list --stage Asked`. For each person, open their conversation at `https://www.linkedin.com/messaging/` (search their name) and read anything after `dateAsked`. For a person with `channel: "email"`, search the connected email connector for mail from their `email` after `dateAsked` instead (skip them, and say so, if no email connector is connected):
-- **Any reply:** if `dateReplied` is empty, set it to today.
+Run `store list --stage Asked` and `store list --stage Referred`. For each person, open their conversation at `https://www.linkedin.com/messaging/` (search their name) and read anything they wrote after `dateLastReply` (after `dateReplied` when that is empty, and after `dateAsked` when both are). For a person with `channel: "email"`, search the connected email connector for mail from their `email` after that same point instead (skip them, and say so, if no email connector is connected):
+- **Any new message from them:** if `dateReplied` is empty, set it to today. Always set `dateLastReply` to the date and time of their latest message (ISO with +05:30). Saving a newer `dateLastReply` clears `replyDone`, so a person whose earlier reply was sent or marked **No reply needed** comes back on Today. Nothing new from them: change nothing, and never draft a reply while `replyDone` is true.
 - **A clear yes** (for example, "send me the link" or "I'll refer you"): run `store update <id>` with `{"stage": "Referred"}` and draft the after-yes reply (step 5).
 - **A clear no:** `{"stage": "Declined"}`.
-- **Anything else:** append a one-line summary to `notes` for the user. When the reply calls for an answer (a question, or an offer to refer for another role), also draft that answer and save it as in step 5. Never draft a reply for a person with `replySkipped: true` (the user clicked **No reply needed**), unless they have written again since; in that case save the draft together with `"replySkipped": false`.
+- **Anything else:** append a one-line summary to `notes` for the user. When the reply calls for an answer (a question, or an offer to refer for another role), also draft that answer and save it as in step 5.
 
 ### 2. Resolve the attachment
 
@@ -59,7 +59,7 @@ These apply only to Asked contacts with an empty `dateReplied`:
 
 ### 5. After a yes
 
-Skip a person with `replySkipped: true`. Otherwise draft a reply from `referral-yes.md`. For `{referral_note}`, use the body of `Referral/Referral-Note.md` (everything after its `---` line). If that file doesn't exist, offer to write it from the master resume (setup's `Referral-Note-Template.md`) instead of drafting the reply. Save the draft with `{"replyMessage": "<text>"}` (saving it clears `replyApproved`). It shows in the person's panel as **Your reply**, where the user edits it and ticks **Approve reply**. Never put a draft in `notes`; if an older one is there after `[reply draft]`, move it to `replyMessage` and remove it from `notes` in the same update.
+Skip a person with `replyDone: true`. Otherwise draft a reply from `referral-yes.md`. For `{referral_note}`, use the body of `Referral/Referral-Note.md` (everything after its `---` line). If that file doesn't exist, offer to write it from the master resume (setup's `Referral-Note-Template.md`) instead of drafting the reply. Save the draft with `{"replyMessage": "<text>"}` (saving it clears `replyApproved`). It shows in the person's panel as **Your reply**, where the user edits it and ticks **Approve reply**. Never put a draft in `notes`; if an older one is there after `[reply draft]`, move it to `replyMessage` and remove it from `notes` in the same update.
 
 At the end of Draft, commit per Outreach-Rules.md.
 
@@ -71,7 +71,7 @@ When the user asks in chat, or in a pipeline run for the messages Outreach-Rules
    - Contacts with `channel: "email"` are never in the automatic batch. Their asks and follow-ups go in the list the user approves in chat, and are created as email drafts per "Email" in Outreach-Rules.md. After the user sends or approves sending, update the contact exactly as for a LinkedIn message.
    - Connected contacts with `askApproved: true`. Check that each one's `attachment` file exists under `<root>`. If it doesn't, leave that person out and say why.
    - Asked contacts with a non-empty `followupMessage`, an empty `dateFollowedUp`, and an empty `dateReplied`.
-   - Contacts on LinkedIn with `replyApproved: true` and a non-empty `replyMessage`, and any reply the user has approved in this conversation.
+   - Contacts on LinkedIn with `replyApproved: true`, a non-empty `replyMessage` and no `replyDone`, and any reply the user has approved in this conversation.
 2. **Show the user the batch:** recipient · company · ask, follow-up or reply · the full text · the attachment file name. Ask: "Send these N messages?" Wait for an explicit yes. A yes covers only this list.
 3. **Send each message:**
    1. Open their profile and click **Message**. If there's no Message button, skip them per the rules.
@@ -81,6 +81,6 @@ When the user asks in chat, or in a pipeline run for the messages Outreach-Rules
    5. Update the contact straight away:
       - ask: `{"stage": "Asked"}`, which stamps `dateAsked`;
       - follow-up: `{"dateFollowedUp": "<today>"}`;
-      - reply: `{"replyMessage": "", "replyApproved": false}`, and append `[reply sent YYYY-MM-DD: <one-line summary>]` to `notes`.
+      - reply: `{"replyMessage": "", "replyApproved": false, "replyDone": true}`, and append `[reply sent YYYY-MM-DD: <one-line summary>]` to `notes`.
    6. Wait a random `minSendGapSeconds`–`maxSendGapSeconds` before the next one.
 4. **Report** what was sent and what was skipped (and why), then commit per Outreach-Rules.md.
