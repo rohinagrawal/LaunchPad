@@ -140,7 +140,8 @@ var YourMove = (function () {
 
   /* The "Your move" panel: a short list, most urgent first.
      Each line: {level, text, sub, target} where target is
-     {type:'job', id} | {type:'people'} | {type:'screening'}. */
+     {type:'job', id} | {type:'people', id?} | {type:'screening'}. A people target with an id
+     is one person (open their panel); without one it is a group (go to People). */
   function summary(apps, contacts, today, followupAfterDays, ap) {
     var lines = [];
     (apps || []).forEach(function (a) {
@@ -161,7 +162,7 @@ var YourMove = (function () {
     });
     replies.forEach(function (c) {
       var m = forContact(c, apps, ap);
-      lines.push({ level: 'red', text: c.name + ' (' + c.company + ') — ' + m.verb, sub: m.why, target: { type: 'people' } });
+      lines.push({ level: 'red', text: c.name + ' (' + c.company + ') — ' + m.verb, sub: m.why, target: { type: 'people', id: c.id } });
     });
     if (asks) {
       lines.push({ level: 'amber', text: 'Approve outreach — ' + asks + ' message' + (asks === 1 ? '' : 's'),

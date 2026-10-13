@@ -366,13 +366,15 @@ var People = (function () {
     });
   }
 
+  // Returns false when there is no such person (archived, or not loaded), so a caller can fall back.
   function open(id) {
-    if (!byId(id)) return;
+    if (!byId(id)) return false;
     detailId = id;
     paintDetail();
     document.getElementById('psheet').scrollTop = 0;
     document.getElementById('pdrawer').classList.add('show');
     markSelected();
+    return true;
   }
 
   function closeDetail() {

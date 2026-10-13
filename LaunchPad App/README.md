@@ -80,8 +80,9 @@ or in a bar along the bottom on a phone. The tracker opens on Today.
   changes anything.
 - **Today** (`#move`) — the number of things that need you, then each of them,
   worked out from the data (rules in `your-move.js`, no DOM), grouped as
-  Overdue, Needs you, When you have a minute, and Waiting on others. Click a line to open the job's panel or to
-  People. The badge on Today counts the lines that need you. On the boards
+  Overdue, Needs you, When you have a minute, and Waiting on others. Click a line about one job or one person and its panel opens right there, so you
+  stay on Today; a line about a group (follow-ups ready, Screening roles to decide)
+  goes to the screen that lists them. The badge on Today counts the lines that need you. On the boards
   themselves each card carries one small chip (e.g. *Take-home due*,
   *Apply now*, *Apply directly*, *Keep or drop?*, *Approve message*, or a
   grey *Referral in progress* / *Connecting next run*), and column headers show how many need you. People aren't reviewed before connecting: approving a job (✓
