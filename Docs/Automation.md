@@ -15,7 +15,7 @@ Each run starts with the readiness check and stops with the reason if it fails. 
 
 Nothing is sent just because the routine ran. A message or request goes out only when one of these is true:
 
-- you approved that exact item in the tracker (a job moved to To Apply, **Approve** on a person, **Approve ask** on a message);
+- you approved that exact item in the tracker (a job moved to To Apply, **Approve** on a person, **Approve ask** on a message, **Approve reply** on a reply);
 - you switched on **Autopilot** on the Today screen, and the item meets the rule you set there;
 - you said yes to a list the routine showed you in its session.
 

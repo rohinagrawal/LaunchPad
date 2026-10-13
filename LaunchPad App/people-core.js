@@ -125,6 +125,29 @@ var PeopleCore = (function () {
     return contact.stage === 'Connected' && !!(contact.askMessage || '').trim() && !!contact.attachment;
   }
 
+  // The reply waiting to be sent to someone who answered. Older drafts sit at the end of the
+  // notes after "[reply draft]"; the first edit moves them into replyMessage.
+  // Must match replyDraft in your-move.js.
+  var REPLY_MARK = '[reply draft]';
+  function replyDraft(contact) {
+    if ((contact.replyMessage || '').trim()) return contact.replyMessage;
+    var notes = contact.notes || '', i = notes.indexOf(REPLY_MARK);
+    return i < 0 ? '' : notes.slice(i + REPLY_MARK.length).trim();
+  }
+
+  function setReplyDraft(contact, text) {
+    var notes = contact.notes || '', i = notes.indexOf(REPLY_MARK);
+    if (i >= 0) contact.notes = notes.slice(0, i).trim();
+    contact.replyMessage = text;
+    contact.replyApproved = false;
+  }
+
+  // The notes without a draft that still sits in them, so the draft is shown once.
+  function notesText(contact) {
+    var notes = contact.notes || '', i = notes.indexOf(REPLY_MARK);
+    return i < 0 ? notes : notes.slice(0, i).trim();
+  }
+
   function furthest(contacts) {
     var best = -1;
     contacts.forEach(function (c) { best = Math.max(best, STAGES.indexOf(c.stage)); });
@@ -235,7 +258,8 @@ var PeopleCore = (function () {
     STAGES: STAGES, CLOSED: CLOSED, ORDER: ORDER, DEFAULT_CONFIG: DEFAULT_CONFIG, RELATIONS: RELATIONS,
     withDefaults: withDefaults, quota: quota, level: level, stats: stats, canToggleNote: canToggleNote,
     moveStage: moveStage, approve: approve, setAttachmentSource: setAttachmentSource,
-    canApproveAsk: canApproveAsk, furthest: furthest, forCompany: forCompany, column: column,
+    canApproveAsk: canApproveAsk, replyDraft: replyDraft, setReplyDraft: setReplyDraft,
+    notesText: notesText, furthest: furthest, forCompany: forCompany, column: column,
     normalizeUrl: normalizeUrl, normalizeEmail: normalizeEmail, channelOf: channelOf,
     validateNew: validateNew, newContact: newContact, applyEdit: applyEdit
   };

@@ -56,6 +56,13 @@ var YourMove = (function () {
     return '';
   }
   function autoSends(c, ap) { return autopilot(ap).messages.enabled && !!pendingMessage(c) && !c.hold; }
+  // The reply waiting to be sent: replyMessage, or an older draft kept in the notes.
+  // Must match replyDraft in people-core.js.
+  function replyDraft(c) {
+    if ((c.replyMessage || '').trim()) return c.replyMessage;
+    var notes = c.notes || '', i = notes.indexOf('[reply draft]');
+    return i < 0 ? '' : notes.slice(i + 13).trim();
+  }
   function first(name) { return (name || '').split(' ')[0]; }
 
   // One action per job card: the most urgent thing, or null when nothing is pending.
@@ -106,12 +113,15 @@ var YourMove = (function () {
      (Found → Queued) connects them next run even if the job isn't approved. Messages (asks, follow-ups,
      replies) are still approved in the People tab; the tracker never sends anything. */
   function forContact(c, apps, ap) {
-    if (c.stage === 'Referred') {
-      return /\[reply draft\]/.test(c.notes || '')
-        ? { level: 'red', verb: 'Approve reply', why: first(c.name) + ' agreed to refer — a reply with your referral note is drafted' }
-        : { level: 'red', verb: 'Send details', why: first(c.name) + ' agreed to refer — send the job link and referral note' };
+    var answered = c.stage === 'Referred' || (c.stage === 'Asked' && c.dateReplied);
+    if (answered && replyDraft(c).trim()) {
+      var said = c.stage === 'Referred' ? ' agreed to refer' : ' replied on ' + String(c.dateReplied).slice(0, 10);
+      return c.replyApproved
+        ? { level: 'wait', verb: 'Reply ready to send', why: 'Reply approved — it goes out on the next run' }
+        : { level: 'red', verb: 'Approve reply', why: first(c.name) + said + ' — read the drafted reply and tick Approve reply' };
     }
-    if (c.stage === 'Asked' && c.dateReplied) return { level: 'red', verb: 'Reply', why: first(c.name) + ' replied on ' + c.dateReplied };
+    if (c.stage === 'Referred') return { level: 'red', verb: 'Send details', why: first(c.name) + ' agreed to refer — send the job link and referral note' };
+    if (c.stage === 'Asked' && c.dateReplied) return { level: 'red', verb: 'Reply', why: first(c.name) + ' replied on ' + String(c.dateReplied).slice(0, 10) + ' — no reply is drafted yet' };
     if (autoSends(c, ap)) {
       var h = autopilot(ap).messages.holdHours;
       return { level: 'wait', verb: 'Auto-sends', why: 'Autopilot sends this ' + (pendingMessage(c) === 'ask' ? 'ask' : 'follow-up') +
