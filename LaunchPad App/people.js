@@ -309,12 +309,16 @@ var People = (function () {
     var draft = PeopleCore.replyDraft(c);
     var answered = c.stage === 'Referred' || (c.stage === 'Asked' && c.dateReplied);
     if (!draft.trim() && (!answered || /\[reply sent/.test(c.notes || ''))) return '';
+    if (c.replySkipped) {
+      return '<p class="pnotes">No reply needed. <span class="minibtn" data-act="replyundo">Undo</span></p>';
+    }
     var email = PeopleCore.channelOf(c) === 'email';
     return '<label>Your reply' + (c.dateReplied ? ' <em>· they replied ' + esc(String(c.dateReplied).slice(0, 10)) + '</em>' : '') + '</label>' +
       '<textarea data-act="reply" placeholder="No reply drafted yet. Write one here, or ask Claude to draft it.">' + esc(draft) + '</textarea>' +
       '<label class="ptoggle"><input type="checkbox" data-act="replyok"' + (c.replyApproved ? ' checked' : '') +
       (draft.trim() ? '' : ' disabled') + '> Approve reply' +
-      (email ? ' <em>(an email is still sent only after your yes in chat)</em>' : '') + '</label>';
+      (email ? ' <em>(an email is still sent only after your yes in chat)</em>' : '') + '</label>' +
+      '<div class="rowbtns"><span class="minibtn" data-act="replyskip" title="Send nothing and take this off Today">No reply needed</span></div>';
   }
 
   function moveSelect(c) {
@@ -544,6 +548,8 @@ var People = (function () {
     else if (act === 'edit') openModal(c);
     else if (act === 'approve') { PeopleCore.approve(c, today); commit(); }
     else if (act === 'skip') { PeopleCore.moveStage(c, 'Skipped', today); commit(); }
+    else if (act === 'replyskip') { PeopleCore.skipReply(c, true); commit(); }
+    else if (act === 'replyundo') { PeopleCore.skipReply(c, false); commit(); }
     else if (act === 'reveal' && serverMode) fetch('reveal?path=' + encodeURIComponent(c.attachment)).catch(function () {});
   }
 

@@ -20,7 +20,7 @@ Run `store list --stage Asked`. For each person, open their conversation at `htt
 - **Any reply:** if `dateReplied` is empty, set it to today.
 - **A clear yes** (for example, "send me the link" or "I'll refer you"): run `store update <id>` with `{"stage": "Referred"}` and draft the after-yes reply (step 5).
 - **A clear no:** `{"stage": "Declined"}`.
-- **Anything else:** append a one-line summary to `notes` for the user. When the reply calls for an answer (a question, or an offer to refer for another role), also draft that answer and save it as in step 5.
+- **Anything else:** append a one-line summary to `notes` for the user. When the reply calls for an answer (a question, or an offer to refer for another role), also draft that answer and save it as in step 5. Never draft a reply for a person with `replySkipped: true` (the user clicked **No reply needed**), unless they have written again since; in that case save the draft together with `"replySkipped": false`.
 
 ### 2. Resolve the attachment
 
@@ -59,7 +59,7 @@ These apply only to Asked contacts with an empty `dateReplied`:
 
 ### 5. After a yes
 
-Draft a reply from `referral-yes.md`. For `{referral_note}`, use the body of `Referral/Referral-Note.md` (everything after its `---` line). If that file doesn't exist, offer to write it from the master resume (setup's `Referral-Note-Template.md`) instead of drafting the reply. Save the draft with `{"replyMessage": "<text>"}` (saving it clears `replyApproved`). It shows in the person's panel as **Your reply**, where the user edits it and ticks **Approve reply**. Never put a draft in `notes`; if an older one is there after `[reply draft]`, move it to `replyMessage` and remove it from `notes` in the same update.
+Skip a person with `replySkipped: true`. Otherwise draft a reply from `referral-yes.md`. For `{referral_note}`, use the body of `Referral/Referral-Note.md` (everything after its `---` line). If that file doesn't exist, offer to write it from the master resume (setup's `Referral-Note-Template.md`) instead of drafting the reply. Save the draft with `{"replyMessage": "<text>"}` (saving it clears `replyApproved`). It shows in the person's panel as **Your reply**, where the user edits it and ticks **Approve reply**. Never put a draft in `notes`; if an older one is there after `[reply draft]`, move it to `replyMessage` and remove it from `notes` in the same update.
 
 At the end of Draft, commit per Outreach-Rules.md.
 

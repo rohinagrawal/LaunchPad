@@ -234,6 +234,9 @@ def update_contact(contacts, cid, fields, cfg, today):
     # A reply that was rewritten has not been read yet, so its approval does not carry over.
     if "replyMessage" in fields and "replyApproved" not in fields:
         c["replyApproved"] = False
+    # "No reply needed" withdraws the approval; the draft stays so the choice can be undone.
+    if fields.get("replySkipped"):
+        c["replyApproved"] = False
     date_field = STAGE_DATE_FIELD.get(fields.get("stage"))
     if date_field and not c.get(date_field):
         c[date_field] = today

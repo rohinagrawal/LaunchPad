@@ -114,6 +114,8 @@ var YourMove = (function () {
      replies) are still approved in the People tab; the tracker never sends anything. */
   function forContact(c, apps, ap) {
     var answered = c.stage === 'Referred' || (c.stage === 'Asked' && c.dateReplied);
+    // The user said this person needs no reply: nothing is pending with them.
+    if (answered && c.replySkipped) return null;
     if (answered && replyDraft(c).trim()) {
       var said = c.stage === 'Referred' ? ' agreed to refer' : ' replied on ' + String(c.dateReplied).slice(0, 10);
       return c.replyApproved

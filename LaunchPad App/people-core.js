@@ -142,6 +142,12 @@ var PeopleCore = (function () {
     contact.replyApproved = false;
   }
 
+  // "No reply needed": stop asking for a reply. The draft is kept, unapproved, so Undo brings it back.
+  function skipReply(contact, skip) {
+    if (skip) setReplyDraft(contact, replyDraft(contact));
+    contact.replySkipped = !!skip;
+  }
+
   // The notes without a draft that still sits in them, so the draft is shown once.
   function notesText(contact) {
     var notes = contact.notes || '', i = notes.indexOf(REPLY_MARK);
@@ -258,7 +264,7 @@ var PeopleCore = (function () {
     STAGES: STAGES, CLOSED: CLOSED, ORDER: ORDER, DEFAULT_CONFIG: DEFAULT_CONFIG, RELATIONS: RELATIONS,
     withDefaults: withDefaults, quota: quota, level: level, stats: stats, canToggleNote: canToggleNote,
     moveStage: moveStage, approve: approve, setAttachmentSource: setAttachmentSource,
-    canApproveAsk: canApproveAsk, replyDraft: replyDraft, setReplyDraft: setReplyDraft,
+    canApproveAsk: canApproveAsk, replyDraft: replyDraft, setReplyDraft: setReplyDraft, skipReply: skipReply,
     notesText: notesText, furthest: furthest, forCompany: forCompany, column: column,
     normalizeUrl: normalizeUrl, normalizeEmail: normalizeEmail, channelOf: channelOf,
     validateNew: validateNew, newContact: newContact, applyEdit: applyEdit
