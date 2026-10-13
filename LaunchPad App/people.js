@@ -297,10 +297,29 @@ var People = (function () {
   function askedSection(c) {
     if (c.stage !== 'Asked') return '';
     var html = '<p class="pnotes">Sent ' + esc(c.dateAsked) + ': ' + esc(c.askMessage) + '</p>';
-    if (c.followupMessage && !c.dateFollowedUp) {
+    // No follow-up goes to someone who has answered.
+    if (c.followupMessage && !c.dateFollowedUp && !c.dateReplied) {
       html += '<label>Follow-up draft</label><textarea data-act="followup">' + esc(c.followupMessage) + '</textarea>' + holdToggle(c);
     }
     return html;
+  }
+
+  // Someone who answered: the reply to send back, with its own approval tick.
+  function replySection(c) {
+    var draft = PeopleCore.replyDraft(c);
+    var answered = c.stage === 'Referred' || (c.stage === 'Asked' && c.dateReplied);
+    if (!draft.trim() && !answered) return '';
+    if (c.replyDone) {
+      return '<p class="pnotes">Nothing to reply to' + (c.dateLastReply || c.dateReplied ? ' since their message of ' + esc(String(c.dateLastReply || c.dateReplied).slice(0, 10)) : '') +
+        '. They show up on Today again if they write. <span class="minibtn" data-act="replyundo">Reopen</span></p>';
+    }
+    var email = PeopleCore.channelOf(c) === 'email';
+    return '<label>Your reply' + (c.dateLastReply || c.dateReplied ? ' <em>· they replied ' + esc(String(c.dateLastReply || c.dateReplied).slice(0, 10)) + '</em>' : '') + '</label>' +
+      '<textarea data-act="reply" placeholder="No reply drafted yet. Write one here, or ask Claude to draft it.">' + esc(draft) + '</textarea>' +
+      '<label class="ptoggle"><input type="checkbox" data-act="replyok"' + (c.replyApproved ? ' checked' : '') +
+      (draft.trim() ? '' : ' disabled') + '> Approve reply' +
+      (email ? ' <em>(an email is still sent only after your yes in chat)</em>' : '') + '</label>' +
+      '<div class="rowbtns"><span class="minibtn" data-act="replyskip" title="Send nothing and take this off Today">No reply needed</span></div>';
   }
 
   function moveSelect(c) {
@@ -337,7 +356,7 @@ var People = (function () {
 
   function detailHtml(c) {
     var m = window.YourMove ? YourMove.forContact(c, state.apps, window.AUTOPILOT) : null;
-    var outreach = noteEditor(c) + askEditor(c) + askedSection(c);
+    var outreach = replySection(c) + noteEditor(c) + askEditor(c) + askedSection(c);
     return '<div class="pdetail" data-id="' + esc(c.id) + '">' +
       '<div class="dhead"><div class="dt"><h2>' + esc(c.name) + '</h2><p class="dsub">' +
       esc([c.title, c.company].filter(Boolean).join(' · ')) + '</p></div>' +
@@ -350,7 +369,7 @@ var People = (function () {
       '<div class="dsec pbody"><h3>About</h3>' +
       (c.why ? '<p>' + esc(c.why) + '</p>' : '') +
       (roles(c) ? '<p class="proles">For: ' + roles(c) + '</p>' : '') +
-      (c.notes ? '<p class="pnotes">' + esc(c.notes) + '</p>' : '') +
+      (PeopleCore.notesText(c) ? '<p class="pnotes">' + esc(PeopleCore.notesText(c)) + '</p>' : '') +
       (c.email ? '<p class="pnotes">' + esc(c.email) + '</p>' : '') + trail(c) + '</div></div>';
   }
 
@@ -530,6 +549,8 @@ var People = (function () {
     else if (act === 'edit') openModal(c);
     else if (act === 'approve') { PeopleCore.approve(c, today); commit(); }
     else if (act === 'skip') { PeopleCore.moveStage(c, 'Skipped', today); commit(); }
+    else if (act === 'replyskip') { PeopleCore.skipReply(c, true); commit(); }
+    else if (act === 'replyundo') { PeopleCore.skipReply(c, false); commit(); }
     else if (act === 'reveal' && serverMode) fetch('reveal?path=' + encodeURIComponent(c.attachment)).catch(function () {});
   }
 
@@ -547,6 +568,16 @@ var People = (function () {
       if (box) { box.checked = false; box.disabled = !PeopleCore.canApproveAsk(c); }
     }
     else if (act === 'followup') c.followupMessage = t.value;
+    else if (act === 'reply') {
+      PeopleCore.setReplyDraft(c, t.value);
+      var tick = t.parentNode.querySelector('[data-act="replyok"]');
+      if (tick) { tick.checked = false; tick.disabled = !t.value.trim(); }
+    }
+    else if (act === 'replyok') {
+      // An older draft kept in the notes moves into replyMessage, which is what gets sent.
+      if (!(c.replyMessage || '').trim()) PeopleCore.setReplyDraft(c, PeopleCore.replyDraft(c));
+      c.replyApproved = t.checked && !!c.replyMessage.trim();
+    }
     else if (act === 'source') PeopleCore.setAttachmentSource(c, t.value, cfg);
     else if (act === 'askok') c.askApproved = t.checked && PeopleCore.canApproveAsk(c);
     else if (act === 'hold') c.hold = t.checked;

@@ -47,7 +47,7 @@ STAGE_DATE_FIELD = {"Queued": "dateQueued", "Requested": "dateRequested",
 BASE36 = "0123456789abcdefghijklmnopqrstuvwxyz"
 LINK_RE = re.compile(r"https?://\S+")
 LINK_BAD_END = ").,;:]>!?\"'"
-MESSAGE_FIELDS = ("askMessage", "followupMessage", "connectNote")
+MESSAGE_FIELDS = ("askMessage", "followupMessage", "connectNote", "replyMessage")
 REPLY_DRAFT = "[reply draft]"
 EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 MAX_SAVE_ATTEMPTS = 2
@@ -218,6 +218,7 @@ def update_contact(contacts, cid, fields, cfg, today):
     if c is None:
         raise KeyError(f"no contact with id {cid}")
     old_stage = c.get("stage")
+    old_last = c.get("dateLastReply")
     check_message_links(fields)
     c.update(fields)
     if "linkedinUrl" in fields:
@@ -231,6 +232,18 @@ def update_contact(contacts, cid, fields, cfg, today):
             c["askApproved"] = False
     if "stage" in fields and fields["stage"] != old_stage and "askApproved" not in fields:
         c["askApproved"] = False
+    # A reply that was rewritten has not been read yet, so its approval does not carry over.
+    if "replyMessage" in fields and "replyApproved" not in fields:
+        c["replyApproved"] = False
+    # replyDone: nothing is owed on their latest message (the reply was sent, or the user chose
+    # "No reply needed"). It withdraws the approval, and a newer message from them reopens it.
+    if fields.get("replyDone"):
+        c["replyApproved"] = False
+    if "dateLastReply" in fields and fields["dateLastReply"] != old_last and "replyDone" not in fields:
+        # A draft that was set aside answered their earlier message, not this one.
+        if c.get("replyDone") and "replyMessage" not in fields:
+            c["replyMessage"] = ""
+        c["replyDone"] = False
     date_field = STAGE_DATE_FIELD.get(fields.get("stage"))
     if date_field and not c.get(date_field):
         c[date_field] = today

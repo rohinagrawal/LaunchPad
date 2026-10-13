@@ -111,6 +111,7 @@ def check_people(rep, jobs, root):
     unsent = [(c, "askMessage") for c in people if c.get("stage") == "Connected"]
     unsent += [(c, "followupMessage") for c in people
                if c.get("stage") == "Asked" and not c.get("dateFollowedUp") and not c.get("dateReplied")]
+    unsent += [(c, "replyMessage") for c in people if c.get("replyMessage")]
     broken = sorted({c["name"] for c, key in unsent if contacts_store.broken_links(c.get(key))})
     if broken:
         rep.warn("people", f"{len(broken)} unsent message(s) have a link that would not open "
