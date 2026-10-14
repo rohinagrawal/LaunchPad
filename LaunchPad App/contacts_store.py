@@ -204,7 +204,7 @@ def add_contacts(contacts, people, cfg, today):
             # Reached by email: there is no connection request to accept, so they start ready to ask.
             "stage": p.get("stage") or ("Connected" if channel == "email" else "Found"),
             "useNote": False, "connectNote": "",
-            "askMessage": "", "askApproved": False, "followupMessage": "",
+            "askMessage": "", "askApproved": False, "followupMessage": "", "followupApproved": False,
             "attachmentSource": source,
             "attachment": cfg["baseResumePath"] if source == "base" else "",
             "dateFound": today, "dateQueued": "", "dateRequested": "", "dateConnected": "",
@@ -240,6 +240,11 @@ def update_contact(contacts, cid, fields, cfg, today):
             c["askApproved"] = False
     if "stage" in fields and fields["stage"] != old_stage and "askApproved" not in fields:
         c["askApproved"] = False
+    if "stage" in fields and fields["stage"] != old_stage and "followupApproved" not in fields:
+        c["followupApproved"] = False
+    # A rewritten follow-up has not been read yet, and a sent one needs no approval any more.
+    if ("followupMessage" in fields or fields.get("dateFollowedUp")) and "followupApproved" not in fields:
+        c["followupApproved"] = False
     # A reply that was rewritten has not been read yet, so its approval does not carry over.
     if "replyMessage" in fields and "replyApproved" not in fields:
         c["replyApproved"] = False
@@ -306,7 +311,7 @@ def settle(contacts, jobs, today):
             stop("skipped", why)
             continue
         for field, approved, what in (("askMessage", "askApproved", "ask dropped"),
-                                      ("followupMessage", None, "follow-up dropped")):
+                                      ("followupMessage", "followupApproved", "follow-up dropped")):
             unsent = (field == "askMessage" and c.get("stage") == "Connected") or \
                      (field == "followupMessage" and c.get("stage") == "Asked" and not c.get("dateFollowedUp"))
             if not unsent or not (c.get(field) or "").strip():

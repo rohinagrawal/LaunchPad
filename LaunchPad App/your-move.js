@@ -52,7 +52,7 @@ var YourMove = (function () {
   // 'ask' / 'followup' when a drafted message is waiting for approval, else ''.
   function pendingMessage(c) {
     if (c.stage === 'Connected' && (c.askMessage || '').trim() && !c.askApproved) return 'ask';
-    if (c.stage === 'Asked' && c.followupMessage && !c.dateFollowedUp && !c.dateReplied) return 'followup';
+    if (c.stage === 'Asked' && c.followupMessage && !c.followupApproved && !c.dateFollowedUp && !c.dateReplied) return 'followup';
     return '';
   }
   function autoSends(c, ap) { return autopilot(ap).messages.enabled && !!pendingMessage(c) && !c.hold; }
@@ -143,8 +143,10 @@ var YourMove = (function () {
         ? { level: 'wait', verb: 'Ready to send', why: 'Ask approved — it goes out on the next run' }
         : { level: 'amber', verb: 'Approve message', why: 'Read the drafted ask, tick Approve ask, then tell Claude "send outreach"' };
     }
-    if (c.stage === 'Asked' && c.followupMessage && !c.dateFollowedUp) {
-      return { level: 'amber', verb: 'Follow-up ready', why: 'Tell Claude "send outreach" to send the one follow-up' };
+    if (c.stage === 'Asked' && c.followupMessage && !c.dateFollowedUp && !c.dateReplied) {
+      return c.followupApproved
+        ? { level: 'wait', verb: 'Ready to send', why: 'Follow-up approved — it goes out on the next run' }
+        : { level: 'amber', verb: 'Approve follow-up', why: 'Read the drafted follow-up and tick Approve follow-up' };
     }
     if (c.stage === 'Requested') return { level: 'wait', verb: 'Awaiting accept', why: 'Connection request pending' };
     if (c.stage === 'Asked') return { level: 'wait', verb: 'Awaiting reply', why: 'Asked on ' + c.dateAsked };
@@ -171,7 +173,7 @@ var YourMove = (function () {
       else if (m.verb === 'Connecting next run') connecting++;
       else if (m.verb === 'Auto-sends' || m.verb === 'Ready to send') autoMsgs++;
       else if (m.verb === 'Approve message') asks++;
-      else if (m.verb === 'Follow-up ready') followups++;
+      else if (m.verb === 'Approve follow-up') followups++;
       else if (m.verb === 'Awaiting reply') waitAsk++;
       else if (m.verb === 'Awaiting accept') waitReq++;
     });
@@ -179,13 +181,12 @@ var YourMove = (function () {
       var m = forContact(c, apps, ap);
       lines.push({ level: 'red', text: c.name + ' (' + c.company + ') — ' + m.verb, sub: m.why, target: { type: 'people', id: c.id } });
     });
-    if (asks) {
-      lines.push({ level: 'amber', text: 'Approve outreach — ' + asks + ' message' + (asks === 1 ? '' : 's'),
+    // Asks and follow-ups waiting for a tick share one line, so Review all approves both.
+    if (asks + followups) {
+      var n = asks + followups;
+      lines.push({ level: 'amber', text: 'Approve outreach — ' + n + ' message' + (n === 1 ? '' : 's') +
+        (followups ? ' (' + followups + ' follow-up' + (followups === 1 ? '' : 's') + ')' : ''),
         sub: 'Review all here (one click), or one by one in People. Approved messages go out on the next run', target: { type: 'people' } });
-    }
-    if (followups) {
-      lines.push({ level: 'amber', text: 'Follow-ups ready — ' + followups,
-        sub: 'Tell Claude "send outreach", or switch on message autopilot', target: { type: 'people' } });
     }
     lines.sort(function (x, y) { return RANK[x.level] - RANK[y.level]; });
     var recent = (apps || []).filter(function (a) { return a.autoClosed && daysBetween(a.autoClosed, today) <= 1; }).length;

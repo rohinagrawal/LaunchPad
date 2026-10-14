@@ -27,7 +27,7 @@ def demo_contacts(today):
         return (today - timedelta(days=n)).isoformat()
 
     blank = {"appIds": ["app-demo1"], "location": "Example City", "useNote": False, "connectNote": "",
-             "askMessage": "", "askApproved": False, "followupMessage": "",
+             "askMessage": "", "askApproved": False, "followupMessage": "", "followupApproved": False,
              "attachmentSource": "tailored", "attachment": "", "dateFound": ago(3), "dateQueued": "",
              "dateRequested": "", "dateConnected": "", "dateAsked": "", "dateFollowedUp": "",
              "dateReplied": "", "nextFollowup": "", "notes": ""}

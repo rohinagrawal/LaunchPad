@@ -526,7 +526,7 @@ document.addEventListener('change',e=>{const t=e.target.closest&&e.target.closes
 let ymOpen='';
 function bulkJobs(){return state.apps.filter(a=>(a.status==='Screening'||a.status==='Researching')&&!YourMove.autoApproveJob(a,window.AUTOPILOT))
   .sort((x,y)=>(parseInt(y.fitScore)||0)-(parseInt(x.fitScore)||0));}
-function bulkMsgs(){return ymContacts().filter(c=>{const m=YourMove.forContact(c,state.apps,window.AUTOPILOT);return m&&m.verb==='Approve message';});}
+function bulkMsgs(){return ymContacts().filter(c=>{const m=YourMove.forContact(c,state.apps,window.AUTOPILOT);return m&&(m.verb==='Approve message'||m.verb==='Approve follow-up');});}
 function bulkPanel(kind){
   if(kind==='jobs'){const js=bulkJobs(),cs=ymContacts();
     const rows=js.map(a=>{const n=cs.filter(c=>(c.stage==='Found'||c.stage==='Queued')&&((c.appIds||[]).includes(a.id)||(!(c.appIds||[]).length&&c.company===a.company))).length;
@@ -536,8 +536,8 @@ function bulkPanel(kind){
     return `<div class="bkpanel" data-kind="jobs"><div class="bkbar"><span class="bkall" data-bkall="1">Select all</span> · <span class="bkall" data-bkall="0">none</span></div>${rows}
       <div class="bkbtns"><span class="minibtn go" data-bkdo="approve">✓ Approve selected → To Apply</span><span class="minibtn" data-bkdo="drop">✗ Drop selected</span></div></div>`;}
   const ms=bulkMsgs();
-  const rows=ms.map(c=>`<label class="bkrow"><input type="checkbox" data-bk="${esc(c.id)}" checked><span class="bkmain"><strong>${esc(c.name)}</strong> · ${esc(c.company)} <span class="bksub">${esc(c.relation||'')}</span>
-    <span class="bkmsg">${esc(c.askMessage)}</span></span></label>`).join('');
+  const rows=ms.map(c=>`<label class="bkrow"><input type="checkbox" data-bk="${esc(c.id)}" checked><span class="bkmain"><strong>${esc(c.name)}</strong> · ${esc(c.company)} <span class="bksub">${esc(c.relation||'')}${c.stage==='Asked'?' · follow-up':''}</span>
+    <span class="bkmsg">${esc(c.stage==='Asked'?c.followupMessage:c.askMessage)}</span></span></label>`).join('');
   return `<div class="bkpanel" data-kind="msgs"><div class="bkbar"><span class="bkall" data-bkall="1">Select all</span> · <span class="bkall" data-bkall="0">none</span> · untick any you want to hold back</div>${rows}
     <div class="bkbtns"><span class="minibtn go" data-bkdo="approve">✓ Approve selected messages</span></div></div>`;}
 function bulkDo(panel,action){const ids=[...panel.querySelectorAll('[data-bk]:checked')].map(x=>x.dataset.bk);
@@ -546,7 +546,9 @@ function bulkDo(panel,action){const ids=[...panel.querySelectorAll('[data-bk]:ch
     ids.forEach(id=>{const a=state.apps.find(x=>x.id===id);if(a){a.status=to;stampApplied(a);stampClosed(a);}});
     save();ymOpen='';render();
     toast(ids.length+(ids.length===1?' role':' roles')+' → '+to+(to==='To Apply'?' · their people get connection requests on the next run':''));return;}
-  let n=0;ymContacts().forEach(c=>{if(ids.includes(c.id)&&window.PeopleCore&&PeopleCore.canApproveAsk(c)){c.askApproved=true;n++;}});
+  let n=0;ymContacts().forEach(c=>{if(!ids.includes(c.id)||!window.PeopleCore)return;
+    if(PeopleCore.canApproveAsk(c)){c.askApproved=true;n++;}
+    else if(PeopleCore.canApproveFollowup(c)){c.followupApproved=true;n++;}});
   if(window.People&&People.commit)People.commit();ymOpen='';render();
   toast(n+(n===1?' message':' messages')+' approved · they go out on the next run');}
 document.addEventListener('click',e=>{const t=e.target;if(!t.closest)return;
@@ -563,12 +565,12 @@ function ymCounts(){if(!window.YourMove)return;
 function renderYourMove(){const el=document.getElementById('ymove');if(!el||!window.YourMove)return;
   const cs=ymContacts();
   const s=YourMove.summary(state.apps,cs,today,ymDays(),window.AUTOPILOT);
-  const byCo=verb=>{const m={};cs.forEach(c=>{const x=YourMove.forContact(c,state.apps,window.AUTOPILOT);if(x&&x.verb===verb)m[c.company]=(m[c.company]||0)+1;});
+  const byCo=(...verbs)=>{const m={};cs.forEach(c=>{const x=YourMove.forContact(c,state.apps,window.AUTOPILOT);if(x&&verbs.includes(x.verb))m[c.company]=(m[c.company]||0)+1;});
     return Object.keys(m).sort((a,b)=>m[b]-m[a]).map(k=>k+' '+m[k]).join(' · ');};
   const waitJobs=state.apps.map(a=>({a,m:ymJob(a)})).filter(x=>x.m&&x.m.level==='wait');
   const groups=[['red','Overdue'],['amber','Needs you'],['grey','When you have a minute']];
   const line=(l,i)=>{let sub=l.sub;
-    if(l.target.type==='people'&&/Approve outreach/.test(l.text)){const m=byCo('Approve message');
+    if(l.target.type==='people'&&/Approve outreach/.test(l.text)){const m=byCo('Approve message','Approve follow-up');
       sub+=(m?' · '+m:'');}
     const bk=l.target.type==='screening'?'jobs':l.target.type==='people'&&/Approve outreach/.test(l.text)?'msgs':'';
     return `<div class="ymline ymline-${l.level}" data-ym="${i}"><span class="ymtext"><strong>${esc(l.text)}</strong><span class="ymsub">${esc(sub)}</span></span>`+

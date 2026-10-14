@@ -102,7 +102,7 @@ var PeopleCore = (function () {
 
   function moveStage(contact, stage, today) {
     if (ORDER.indexOf(stage) < 0) throw new Error('unknown stage ' + stage);
-    if (stage !== contact.stage) contact.askApproved = false;
+    if (stage !== contact.stage) { contact.askApproved = false; contact.followupApproved = false; }
     contact.stage = stage;
     var field = DATE_FIELD[stage];
     if (field && !contact[field]) contact[field] = today;
@@ -123,6 +123,12 @@ var PeopleCore = (function () {
 
   function canApproveAsk(contact) {
     return contact.stage === 'Connected' && !!(contact.askMessage || '').trim() && !!contact.attachment;
+  }
+
+  // The one follow-up: drafted, not sent, and they haven't answered.
+  function canApproveFollowup(contact) {
+    return contact.stage === 'Asked' && !!(contact.followupMessage || '').trim() &&
+      !contact.dateFollowedUp && !contact.dateReplied;
   }
 
   // The reply waiting to be sent to someone who answered. Older drafts sit at the end of the
@@ -253,7 +259,7 @@ var PeopleCore = (function () {
       id: id, company: fields.company.trim(), appIds: appIds || [], name: fields.name.trim(),
       title: (fields.title || '').trim(), linkedinUrl: url, location: '',
       relation: relation, likelihood: RELATION_SCORE[relation] || 50, why: 'Added by you',
-      stage: stage, useNote: false, connectNote: '', askMessage: '', askApproved: false, followupMessage: '',
+      stage: stage, useNote: false, connectNote: '', askMessage: '', askApproved: false, followupMessage: '', followupApproved: false,
       attachmentSource: cfg.defaultAttachment,
       attachment: cfg.defaultAttachment === 'base' ? cfg.baseResumePath : '',
       dateFound: today, dateQueued: '', dateRequested: '', dateConnected: stage === 'Connected' ? today : '',
@@ -265,7 +271,7 @@ var PeopleCore = (function () {
     STAGES: STAGES, CLOSED: CLOSED, ORDER: ORDER, DEFAULT_CONFIG: DEFAULT_CONFIG, RELATIONS: RELATIONS,
     withDefaults: withDefaults, quota: quota, level: level, stats: stats, canToggleNote: canToggleNote,
     moveStage: moveStage, approve: approve, setAttachmentSource: setAttachmentSource,
-    canApproveAsk: canApproveAsk, replyDraft: replyDraft, setReplyDraft: setReplyDraft, skipReply: skipReply,
+    canApproveAsk: canApproveAsk, canApproveFollowup: canApproveFollowup, replyDraft: replyDraft, setReplyDraft: setReplyDraft, skipReply: skipReply,
     notesText: notesText, furthest: furthest, forCompany: forCompany, column: column,
     normalizeUrl: normalizeUrl, normalizeEmail: normalizeEmail, channelOf: channelOf,
     validateNew: validateNew, newContact: newContact, applyEdit: applyEdit

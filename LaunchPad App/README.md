@@ -93,7 +93,7 @@ or in a bar along the bottom on a phone. The tracker opens on Today.
   default) can approve jobs above a fit/tier bar and send drafted messages
   after a hold window unless you tick **Hold** on that person.
   To connect with someone before their job is approved, open them in People and click **Approve**. The tracker itself never sends anything;
-  messages are approved in the person panel. When someone has answered, the panel shows **Your reply**:
+  messages are approved in the person panel (**Approve ask**, **Approve follow-up**), or a batch at once with **Review all**. When someone has answered, the panel shows **Your reply**:
   the drafted reply, which you can edit, an **Approve reply** tick, and **No reply needed** to send nothing and take it off Today.
 
 ## Storage modes (auto-detected, in priority order)

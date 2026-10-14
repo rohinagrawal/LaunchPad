@@ -10,7 +10,7 @@ Read `Outreach-Rules.md` (next to this file) first; it applies to every step (in
 - **Draft** (including the reply check) is read-only on LinkedIn and can run on schedule.
 - **Send** is supervised.
 
-"Config" means `Data/outreach-config.json`. If that file is missing, the defaults in `LaunchPad App/outreach-config.json` apply; to change a setting, copy that file to `Data/outreach-config.json` first and edit the copy. The user reviews every draft in the tracker's **People** tab and ticks **Approve ask** (or **Approve reply**, for a reply to someone who answered) before anything can be sent.
+"Config" means `Data/outreach-config.json`. If that file is missing, the defaults in `LaunchPad App/outreach-config.json` apply; to change a setting, copy that file to `Data/outreach-config.json` first and edit the copy. The user reviews every draft in the tracker's **People** tab and ticks **Approve ask**, **Approve follow-up** or **Approve reply** (for a reply to someone who answered) before anything can be sent.
 
 ## Draft (read-only)
 
@@ -54,7 +54,7 @@ Follow the message rules, and compare against other asks at the same company (`s
 ### 4. Follow-ups and close-out
 
 These apply only to Asked contacts with an empty `dateReplied`:
-- **Draft a follow-up** from `follow-up.md` when all of these hold: `dateFollowedUp` is empty, `followupMessage` is empty, and `dateAsked` is at least `followupAfterDays` days ago. Save it as `followupMessage`, with `dateDrafted` set to now.
+- **Draft a follow-up** from `follow-up.md` when all of these hold: `dateFollowedUp` is empty, `followupMessage` is empty, and `dateAsked` is at least `followupAfterDays` days ago. Save it as `followupMessage`, with `dateDrafted` set to now (saving it clears `followupApproved`). The user ticks **Approve follow-up** in the person's panel or in Today's **Review all**.
 - **Close out** with `{"stage": "No response"}` when `dateFollowedUp` is at least `followupAfterDays` days ago.
 
 ### 5. After a yes
@@ -71,7 +71,7 @@ When the user asks in chat, or in a pipeline run for the messages Outreach-Rules
    - Run `store settle` first. Leave out an ask or follow-up whose job is not open today or already has a referral, and say why.
    - Contacts with `channel: "email"` are never in the automatic batch. Their asks and follow-ups go in the list the user approves in chat, and are created as email drafts per "Email" in Outreach-Rules.md. After the user sends or approves sending, update the contact exactly as for a LinkedIn message.
    - Connected contacts with `askApproved: true`. Check that each one's `attachment` file exists under `<root>`. If it doesn't, leave that person out and say why.
-   - Asked contacts with a non-empty `followupMessage`, an empty `dateFollowedUp`, and an empty `dateReplied`.
+   - Asked contacts with `followupApproved: true`, a non-empty `followupMessage`, an empty `dateFollowedUp`, and an empty `dateReplied`; in a pipeline run, also those message autopilot lets go out. In a chat session, unapproved follow-ups may go in the list for the user's yes.
    - Contacts on LinkedIn with `replyApproved: true`, a non-empty `replyMessage` and no `replyDone`, and any reply the user has approved in this conversation.
 2. **Show the user the batch:** recipient · company · ask, follow-up or reply · the full text · the attachment file name. Ask: "Send these N messages?" Wait for an explicit yes. A yes covers only this list.
 3. **Send each message:**
@@ -81,7 +81,7 @@ When the user asks in chat, or in a pipeline run for the messages Outreach-Rules
    4. Click **Send** and confirm the message appears in the thread.
    5. Update the contact straight away:
       - ask: `{"stage": "Asked"}`, which stamps `dateAsked`;
-      - follow-up: `{"dateFollowedUp": "<today>"}`;
+      - follow-up: `{"dateFollowedUp": "<today>"}` (this clears `followupApproved`);
       - reply: `{"replyMessage": "", "replyApproved": false, "replyDone": true}`, and append `[reply sent YYYY-MM-DD: <one-line summary>]` to `notes`.
    6. Wait a random `minSendGapSeconds`–`maxSendGapSeconds` before the next one.
 4. **Report** what was sent and what was skipped (and why), then commit per Outreach-Rules.md.
