@@ -81,9 +81,10 @@ var YourMove = (function () {
     if (s === 'To Apply') {
       if (a.dateApplied) return null;
       var cs = contactsFor(a, contacts);
-      var referred = cs.filter(function (c) { return c.stage === 'Referred'; });
+      var referred = cs.filter(function (c) { return c.stage === 'Referred'; }).map(function (c) { return c.name; });
+      if (a.referredBy && referred.indexOf(a.referredBy) < 0) referred.unshift(a.referredBy);
       if (referred.length) {
-        return { level: 'amber', verb: 'Apply now', why: 'Referral from ' + referred.map(function (c) { return c.name; }).join(', ') };
+        return { level: 'amber', verb: 'Apply now', why: 'Referral from ' + referred.join(', ') };
       }
       var asked = cs.filter(function (c) { return c.stage === 'Asked' && c.dateAsked; });
       var stale = asked.length && asked.every(function (c) {

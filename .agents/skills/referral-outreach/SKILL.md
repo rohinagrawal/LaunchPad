@@ -18,7 +18,7 @@ Read `Outreach-Rules.md` (next to this file) first; it applies to every step (in
 
 Run `store list --stage Asked` and `store list --stage Referred`. For each person, open their conversation at `https://www.linkedin.com/messaging/` (search their name) and read anything they wrote after `dateLastReply` (after `dateReplied` when that is empty, and after `dateAsked` when both are). For a person with `channel: "email"`, search the connected email connector for mail from their `email` after that same point instead (skip them, and say so, if no email connector is connected):
 - **Any new message from them:** if `dateReplied` is empty, set it to today. Always set `dateLastReply` to the date and time of their latest message (ISO with +05:30). Saving a newer `dateLastReply` clears `replyDone`, so a person whose earlier reply was sent or marked **No reply needed** comes back on Today. Nothing new from them: change nothing, and never draft a reply while `replyDone` is true.
-- **A clear yes** (for example, "send me the link" or "I'll refer you"): run `store update <id>` with `{"stage": "Referred"}` and draft the after-yes reply (step 5).
+- **A clear yes** (for example, "send me the link" or "I'll refer you"): run `store update <id>` with `{"stage": "Referred"}`, making sure `appIds` names the job they will refer for, and `jobs update <job id>` with `{"referredBy": "<their name>"}`. Then run `store settle`, which stops asking anyone else for that job, and draft the after-yes reply (step 5).
 - **A clear no:** `{"stage": "Declined"}`.
 - **Anything else:** append a one-line summary to `notes` for the user. When the reply calls for an answer (a question, or an offer to refer for another role), also draft that answer and save it as in step 5.
 
@@ -36,7 +36,7 @@ Save a resolved file with `store update <id>` and `{"attachment": "<path relativ
 
 ### 3. Draft the ask
 
-For each Connected contact whose `askMessage` is empty, use `ask-recruiter.md` if `relation` is `recruiter`, and `ask-engineer.md` otherwise. Fill in:
+For each Connected contact whose `askMessage` is empty, pick the job the ask is for: one of their `appIds` (or, when empty, a To Apply job at their company) that is open (posting checked today) and has no referral yet (no `referredBy`, and no Referred person linked to it). No such job: draft nothing for them and say so in the report. Otherwise, use `ask-recruiter.md` if `relation` is `recruiter`, and `ask-engineer.md` otherwise. Fill in:
 - `{first_name}` from the contact.
 - `{role}` and `{company}` from the linked card.
 - `{job_link}`: the direct link to the job description, on a line of its own. Start from the card's `url` and resolve it to the page it finally lands on, with no redirect or tracking parameters (see "Writing messages" in Outreach-Rules.md).
@@ -68,6 +68,7 @@ At the end of Draft, commit per Outreach-Rules.md.
 When the user asks in chat, or in a pipeline run for the messages Outreach-Rules.md lets go out without a chat yes (approved in the tracker, or autopilot after the hold window). For those, skip step 2 and list them in the run report instead. "Send outreach" means `people-finder`'s Send (connection requests) first, then this mode, each with its own list and its own yes; see Outreach-Rules.md.
 
 1. **Build the batch:**
+   - Run `store settle` first. Leave out an ask or follow-up whose job is not open today or already has a referral, and say why.
    - Contacts with `channel: "email"` are never in the automatic batch. Their asks and follow-ups go in the list the user approves in chat, and are created as email drafts per "Email" in Outreach-Rules.md. After the user sends or approves sending, update the contact exactly as for a LinkedIn message.
    - Connected contacts with `askApproved: true`. Check that each one's `attachment` file exists under `<root>`. If it doesn't, leave that person out and say why.
    - Asked contacts with a non-empty `followupMessage`, an empty `dateFollowedUp`, and an empty `dateReplied`.

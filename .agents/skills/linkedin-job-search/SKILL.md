@@ -28,6 +28,7 @@ Open LinkedIn Jobs searches in the browser (built-in first, Chrome as fallback; 
   2. `<Company> <role area>`, for each target company in the thesis, highest priority first.
 - Before opening a posting, skip it if `jobs find --company "<Company>" --role "<Role>" --url "<link>"` returns anything, a recent `Job Listings/New-Openings-*.md` lists it, or it already appeared in this run.
 - Read at most 25 postings per run.
+- Skip a posting that is no longer accepting applications (LinkedIn says so on the posting, or the company page it links to is closed). Only open postings go on the board.
 
 ## 3. Score
 
@@ -57,8 +58,9 @@ With no signal for a part (pay not stated, no posting date), give it 3 and say s
 
 ## 4. Save and add (roles scoring 50+)
 
-1. Save the description to `Job Listings/<Company> - <Role>.md`, replacing `/` and `:` with `-`. Put the posting URL and today's date on the first two lines.
-2. Add the roles with `jobs add` (see Outreach-Rules.md), all in one JSON array on stdin:
+1. Every role you add was open when you read it: give it `"postingChecked": "<today>"`.
+2. Save the description to `Job Listings/<Company> - <Role>.md`, replacing `/` and `:` with `-`. Put the posting URL and today's date on the first two lines.
+3. Add the roles with `jobs add` (see Outreach-Rules.md), all in one JSON array on stdin:
 
    ```json
    [{"company": "", "role": "", "location": "", "arrangement": "Remote|Hybrid|Onsite",
@@ -68,7 +70,7 @@ With no signal for a part (pay not stated, no posting date), give it 3 and say s
      "notes": "<tier> · <one-line why> · <anything to verify>", "source": "LinkedIn"}]
    ```
 
-3. Read the tool's output: `added` is what landed in Screening, `skipped` names the ones already on the board. An error means nothing was saved; fix the value it names and run it again.
+4. Read the tool's output: `added` is what landed in Screening, `skipped` names the ones already on the board. An error means nothing was saved; fix the value it names and run it again.
 
 ## 5. Review file
 

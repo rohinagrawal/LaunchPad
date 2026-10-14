@@ -15,7 +15,7 @@ Read `.agents/skills/referral-outreach/Outreach-Rules.md` first; it applies to e
 ## Research (read-only)
 
 1. **Know the user's network.** From `Resume/Master-Resume.md`, list every employer (with dates) and every school (with dates). These drive the searches and the scoring below.
-2. **Targets:** companies with at least one `To Apply` card: `jobs list --status "To Apply" --fields company,role,url,tier,fitScore` (see Outreach-Rules.md).
+2. **Targets:** companies with at least one `To Apply` card: `jobs list --status "To Apply" --fields company,role,url,tier,fitScore,referredBy,postingChecked` (see Outreach-Rules.md). Leave out a job that has `referredBy` (someone already referred the user) or whose posting was not found open today (see "Before any outreach").
    - For each, run `store list --company "<Company>"`.
    - Skip companies that already have `contactsPerCompany` contacts not in `Skipped`.
 3. **Budget:** open at most `maxProfileViewsPerRun` profile pages in this run, across all companies and the acceptance check. Count every profile page you open.
@@ -70,6 +70,7 @@ Read `.agents/skills/referral-outreach/Outreach-Rules.md` first; it applies to e
 Runs in every pipeline run, and whenever the user says "send outreach" or "send the requests". No yes is needed for the batch: approving the job was the approval.
 
 1. **Pick the batch.**
+   - Run `store settle` first: it skips people whose jobs are closed or already referred.
    - Run `store list --stage Found` and `store list --stage Queued`. Take every Queued contact (approved by hand by the user). From Found, keep only contacts linked to an approved job: a card in Data/data.json with status To Apply, Applied, Phone Screen, Take-home, Interviewing, Final Round or Offer, matched by `appIds` (or by company when `appIds` is empty). Never connect Found contacts whose jobs are all in Screening or closed. Leave out anyone with `channel: "email"` or no `linkedinUrl`: there is no profile to connect with. Sort by likelihood, highest first.
    - Run `store quota`. `remainingToday` is `null` when no request limit is set: take them all. If it's a number, take the first `remainingToday`, and if it's 0, say the limit the user set is reached and stop.
 2. **Prepare notes.**

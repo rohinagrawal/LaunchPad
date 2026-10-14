@@ -16,6 +16,14 @@ silently overwriting someone else's write.
   add                                       JSON array of new people on stdin
   update ID                                 JSON object of fields on stdin
   quota                                     request/note usage (and what's left under any limits)
+  settle [--dry-run]                        stop outreach for jobs that closed or already have a referral
+
+`settle` is run before any outreach. A job is finished for outreach when it is
+closed, or when someone has already referred the user for it (a Referred person
+linked to it, or `referredBy` on the job). Other people linked only to finished
+jobs stop: Found and Queued become Skipped, an unsent ask or follow-up is
+dropped. An unsent message that names a finished job's link is dropped too, so
+the next draft is for a job that is still open.
 
 Env: JOBTRACKER_PORT (default 8787), OUTREACH_TODAY (YYYY-MM-DD, tests only).
 """
@@ -250,6 +258,86 @@ def update_contact(contacts, cid, fields, cfg, today):
     return c
 
 
+# Job statuses after which nobody is asked for a referral (must match CLOSED in jobs_store.py).
+JOB_CLOSED = ("Rejected", "Withdrawn", "Ghosted", "Won't Apply")
+
+
+def _links(text):
+    return {re.sub(r"[?#].*$", "", u.lower().rstrip(LINK_BAD_END)).rstrip("/") for u in LINK_RE.findall(text or "")}
+
+
+def finished_jobs(jobs, contacts):
+    """{job id: reason} for jobs that need no more outreach: closed, or already referred."""
+    out = {}
+    for j in jobs:
+        if j.get("status") in JOB_CLOSED:
+            out[j.get("id")] = "the job is closed (" + j.get("status") + ")"
+        elif (j.get("referredBy") or "").strip():
+            out[j.get("id")] = "already referred by " + j["referredBy"].strip()
+    for c in contacts:
+        if c.get("stage") == "Referred":
+            for jid in c.get("appIds") or []:
+                out.setdefault(jid, "already referred by " + (c.get("name") or "someone"))
+    return out
+
+
+def settle(contacts, jobs, today):
+    """Stop outreach that is about finished jobs. Returns a list of what changed."""
+    done = finished_jobs(jobs, contacts)
+    links = {}
+    for j in jobs:
+        if j.get("id") in done:
+            links.update({u: done[j.get("id")] for u in _links(j.get("url"))})
+    changes = []
+    for c in contacts:
+        if c.get("stage") == "Referred":
+            continue
+        ids = c.get("appIds") or []
+        all_done = bool(ids) and all(i in done for i in ids)
+        why = done[ids[0]] if all_done else ""
+
+        def stop(what, reason):
+            c["notes"] = (str(c.get("notes") or "").rstrip() + f" [outreach: {what} {today}: {reason}]").strip()
+            changes.append({"id": c.get("id"), "name": c.get("name"), "company": c.get("company"),
+                            "change": what, "reason": reason})
+
+        if c.get("stage") in ("Found", "Queued") and all_done:
+            c["stage"], c["askApproved"] = "Skipped", False
+            stop("skipped", why)
+            continue
+        for field, approved, what in (("askMessage", "askApproved", "ask dropped"),
+                                      ("followupMessage", None, "follow-up dropped")):
+            unsent = (field == "askMessage" and c.get("stage") == "Connected") or \
+                     (field == "followupMessage" and c.get("stage") == "Asked" and not c.get("dateFollowedUp"))
+            if not unsent or not (c.get(field) or "").strip():
+                continue
+            named = [links[u] for u in _links(c.get(field)) if u in links]
+            if all_done or named:
+                c[field] = ""
+                if approved:
+                    c[approved] = False
+                stop(what, why or named[0])
+    return changes
+
+
+def run_settle(today, dry_run=False):
+    """Load people and jobs, settle, save the people — retried once on a revision conflict."""
+    import jobs_store  # imports this module, so only here
+    for attempt in range(MAX_SAVE_ATTEMPTS):
+        contacts, revision = load_contacts()
+        jobs, _ = jobs_store.load_jobs()
+        changes = settle(contacts, jobs, today)
+        if dry_run or not changes:
+            return {"changes": changes, "savedVia": "unchanged"}
+        try:
+            saved_via = save_contacts(contacts, revision)
+        except ConflictError:
+            if attempt < MAX_SAVE_ATTEMPTS - 1:
+                continue
+            raise RuntimeError("contacts changed while updating; re-run the command")
+        return {"changes": changes, "savedVia": saved_via}
+
+
 def _left(limit, used):
     """Remaining under a cap, or None when that cap is off."""
     return None if limit is None else max(0, limit - used)
@@ -316,6 +404,8 @@ def main(argv=None):
     up = sub.add_parser("update")
     up.add_argument("id")
     sub.add_parser("quota")
+    st = sub.add_parser("settle")
+    st.add_argument("--dry-run", action="store_true", help="show what would change, save nothing")
     args = ap.parse_args(argv)
 
     today = os.environ.get("OUTREACH_TODAY") or date.today().isoformat()
@@ -335,6 +425,8 @@ def main(argv=None):
             if not isinstance(payload, list):
                 raise TypeError("add stdin must be a JSON array")
             out = run_add(payload, cfg, today)
+        elif args.cmd == "settle":
+            out = run_settle(today, args.dry_run)
         else:
             payload = json.load(sys.stdin)
             if not isinstance(payload, dict):

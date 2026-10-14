@@ -46,6 +46,7 @@ Neither skill's Send section covers the other's list. Running just one of them (
     - Setting `stage` fills that stage's date.
     - Setting `attachmentSource` resets `attachment` (to `baseResumePath` for `base`) and clears `askApproved`.
   - `quota`: prints requests today and this week, and notes sent and selected, with what remains under each limit (`null` when that limit is off).
+  - `settle [--dry-run]`: stops outreach for jobs that are finished: closed, or already referred (a Referred person linked to the job, or `referredBy` on the job). People linked only to finished jobs go from Found or Queued to Skipped, and their unsent ask or follow-up is dropped. An unsent message that names a finished job's link is dropped too. It prints each change with the reason. Run it at the points "Before any outreach" names.
   - It writes through the tracker server when it's running (so an open People screen stays in sync), and straight to the file otherwise.
 - **Jobs** go only through `jobs`, which means `python3 "<root>/LaunchPad App/jobs_store.py"`. Never hand-edit `data.json`, and never POST to the server yourself.
   - `list [--status S[,S…]] [--company C] [--id ID] [--fields a,b,…]`: prints jobs as JSON. The long document fields are left out unless you pass `--full` or `--id`.
@@ -57,7 +58,20 @@ Neither skill's Send section covers the other's list. Running just one of them (
   - `update <id>`: takes a JSON object of fields on stdin. Only those fields change.
   - `move <id> <status>`: changes the status and stamps the dates that follow (applied date and follow-up for `Applied`, closed date for a closed status). An unknown status is refused, and the error lists the valid ones.
   - `note <id> "<text>"`: appends to the job's notes. Never rewrite notes with `update`.
+  - `posting <id> open|closed`: records that you opened the posting today. `closed` moves a job not applied for yet (Researching, Screening, To Apply) to Won't Apply with a note; for an application already sent it only records the date.
+  - `list --check-due`: the jobs whose posting needs a check now: every To Apply job not checked today, and Screening or Researching jobs not checked in the last 7 days.
+  - `referredBy`: set it with `update` (`{"referredBy": "<name>"}`) when a referral for that job is confirmed, by the person or by the company's email. It stops all other outreach for the job.
   - It writes through the tracker server when it's running (so an open tracker stays in sync), and straight to the file otherwise. If the jobs changed underneath it, it retries once and then fails rather than overwrite; re-run the command.
+## Before any outreach
+
+Work only on postings that still take applications, and never ask a second person for a job someone has already referred the user for. In this order, at the start of every run that touches outreach:
+
+1. **Replies first.** Read new replies on LinkedIn (`referral-outreach`, Draft step 1) and, when an email connector is connected, the inbox (`reply-monitor`). A confirmed referral for a job, from a person or from a company email such as "you have been referred", is recorded straight away: the person moves to Referred with `appIds` naming that job, and the job gets `referredBy`.
+2. **Postings.** For each job in `jobs list --check-due`, open its `url` and record `jobs posting <id> open` or `closed`. Closed means the page says it is no longer accepting applications, the job is gone (404, or a redirect to a search or careers page), or the requisition is marked filled. If the page can't be read (login wall, error), leave it unrecorded and say so; never guess.
+3. **Settle.** Run `store settle` and put its changes in the report.
+
+Then, before drafting or sending anything that names a job, that job must be open (checked today) and not referred. Run `store settle` again right before sending, because a reply read earlier in the run may have changed things.
+
 - **Commit** at the end of each run, only if git is set up (it's optional; skip silently otherwise). Run from `<root>`:
   ```bash
   if git -C "LaunchPad App" rev-parse >/dev/null 2>&1; then
