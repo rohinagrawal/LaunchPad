@@ -129,6 +129,7 @@ var Screens = (function () {
         <select class="pmove" data-movejob="${esc(a.id)}" aria-label="Move to another status"><option value="">Move to…</option>${ALL_STATUSES.filter(s => s !== a.status).map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join('')}</select></div>
       <div class="dsec"><h3>Details</h3><dl class="facts">${fact('Location', a.location)}${fact('Arrangement', a.arrangement)}${fact('Salary', a.salary)}${fact('Excitement', a.excitement ? a.excitement + ' of 5' : '')}
         ${fact('Added', a.dateAdded ? a.dateAdded + ' · ' + ageStr(a.dateAdded) : '')}${fact('Applied', a.dateApplied)}${fact('Next follow-up', a.nextFollowup, dueClass(a.nextFollowup))}${fact('Last contact', a.lastContact)}
+        ${fact('Posting', a.postingClosed ? 'Closed ' + a.postingClosed : a.postingChecked ? 'Open, checked ' + a.postingChecked : '')}${fact('Referred by', a.referredBy)}
         ${fact('Contact', a.contact)}${fact('Source', a.source)}${fact('Resume version', a.resumeVersion)}</dl>${fitParts(a)}</div>
       ${notes ? `<div class="dsec"><h3>Notes</h3><p class="dnotes">${esc(notes)}</p></div>` : ''}
       ${docs ? `<div class="dsec"><h3>Documents</h3>${docs}</div>` : ''}

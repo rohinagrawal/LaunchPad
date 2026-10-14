@@ -14,10 +14,18 @@ rather than overwrite someone else's save.
   update ID                                                      JSON object of fields on stdin
   move   ID STATUS                                               change status (dates are stamped for you)
   note   ID TEXT                                                 append to the job's notes
+  posting ID open|closed                                         record that the posting was checked today
+  list --check-due                                               jobs whose posting needs checking now
 
 `list` leaves out the long document fields (resumeMD, coverMD, referralMD,
 prepMD) unless --full or --id is given; --fields keeps only the named ones. There is no delete: close a job with
 `move`, and cleanup.py archives it later.
+
+Nobody works on a posting that has stopped taking applications. `posting ID closed`
+moves a job that is not applied for yet (Researching, Screening, To Apply) to
+Won't Apply; for an application already sent it only records the date. A job in
+To Apply is due for a check every day, one in Screening or Researching every
+CHECK_SCREENING_DAYS days.
 
 The rules here (statuses, ids, date stamps) must match the page's own in
 index.html (ALL_STATUSES, uid, stampApplied, stampClosed), which it keeps so
@@ -44,10 +52,11 @@ STATUSES = ["Researching", "Screening", "To Apply", "Applied", "Phone Screen", "
 CLOSED = ("Rejected", "Withdrawn", "Ghosted", "Won't Apply")
 TIERS = ("", "A", "B", "C")
 ARRANGEMENTS = ("", "Remote", "Hybrid", "Onsite")
-DATE_FIELDS = ("dateAdded", "dateApplied", "nextFollowup", "lastContact", "dateClosed")
+DATE_FIELDS = ("dateAdded", "dateApplied", "nextFollowup", "lastContact", "dateClosed", "postingChecked",
+               "postingClosed")
 # The page escapes these as text, so anything but a string breaks the card.
 TEXT_FIELDS = ("company", "role", "location", "url", "salary", "excitement", "fitScore", "notes", "source",
-               "contact", "resumeVersion", "coverLetter")
+               "contact", "resumeVersion", "coverLetter", "referredBy")
 FIT_PARTS = ("role", "skills", "level", "pay", "location", "posting")
 LONG_FIELDS = ("resumeMD", "coverMD", "referralMD", "prepMD")
 # What a new card starts with, so every card has the fields the page expects.
@@ -57,6 +66,9 @@ BLANK = {"company": "", "role": "", "location": "", "arrangement": "", "url": ""
          "source": ""}
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 MAX_SAVE_ATTEMPTS = 2
+# Not applied for yet: a closed posting ends these. Later stages keep going.
+BEFORE_APPLYING = ("Researching", "Screening", "To Apply")
+CHECK_SCREENING_DAYS = 7
 
 
 class ConflictError(RuntimeError):
@@ -235,6 +247,44 @@ def append_note(jobs, jid, text):
     return job
 
 
+def check_due(jobs, today):
+    """Jobs not applied for yet whose posting was not checked recently enough."""
+    out = []
+    for j in jobs:
+        status, checked = j.get("status"), j.get("postingChecked") or ""
+        if status not in BEFORE_APPLYING:
+            continue
+        if status == "To Apply":
+            due = checked < today
+        else:
+            due = not checked or (date.fromisoformat(today) - date.fromisoformat(checked)).days >= CHECK_SCREENING_DAYS
+        if due:
+            out.append(j)
+    return out
+
+
+def record_posting(jobs, jid, state, today):
+    """The posting was checked today. A closed one ends a job that is not applied for yet."""
+    job = next((j for j in jobs if j.get("id") == jid), None)
+    if job is None:
+        raise KeyError(f"no job with id {jid}")
+    if state not in ("open", "closed"):
+        raise ValueError("the posting is either open or closed")
+    job["postingChecked"] = today
+    if state == "open":
+        job.pop("postingClosed", None)
+        return job
+    if not job.get("postingClosed"):
+        job["postingClosed"] = today
+        if job.get("status") in BEFORE_APPLYING:
+            job["status"] = "Won't Apply"
+            stamp(job, today)
+            append_note(jobs, jid, f"[posting closed {today}: no longer accepting applications]")
+        else:
+            append_note(jobs, jid, f"[posting closed {today}]")
+    return job
+
+
 def brief(job):
     return {k: v for k, v in job.items() if k not in LONG_FIELDS}
 
@@ -265,6 +315,7 @@ def main(argv=None):
     ls.add_argument("--id")
     ls.add_argument("--full", action="store_true", help="include the long document fields")
     ls.add_argument("--fields", help="only these fields, separated by commas (id is always included)")
+    ls.add_argument("--check-due", action="store_true", help="only jobs whose posting needs checking now")
     fd = sub.add_parser("find")
     fd.add_argument("--company", required=True)
     fd.add_argument("--role", required=True)
@@ -278,6 +329,9 @@ def main(argv=None):
     nt = sub.add_parser("note")
     nt.add_argument("id")
     nt.add_argument("text")
+    pg = sub.add_parser("posting")
+    pg.add_argument("id")
+    pg.add_argument("state", choices=("open", "closed"))
     args = ap.parse_args(argv)
 
     today = os.environ.get("OUTREACH_TODAY") or date.today().isoformat()
@@ -292,6 +346,9 @@ def main(argv=None):
                    if (not wanted or j.get("status") in wanted)
                    and (not args.company or key(j.get("company")) == key(args.company))
                    and (not args.id or j.get("id") == args.id)]
+            if args.check_due:
+                due = {j.get("id") for j in check_due(jobs, today)}
+                out = [j for j in out if j.get("id") in due]
             if not (args.full or args.id):
                 out = [brief(j) for j in out]
             if args.fields:
@@ -316,6 +373,8 @@ def main(argv=None):
             out = run(lambda jobs: ({"job": brief(update_job(jobs, args.id, payload, today))}, True))
         elif args.cmd == "move":
             out = run(lambda jobs: ({"job": brief(update_job(jobs, args.id, {"status": args.status}, today))}, True))
+        elif args.cmd == "posting":
+            out = run(lambda jobs: ({"job": brief(record_posting(jobs, args.id, args.state, today))}, True))
         else:
             out = run(lambda jobs: ({"job": brief(append_note(jobs, args.id, args.text))}, True))
     except (KeyError, ValueError, RuntimeError, OSError, TypeError) as e:

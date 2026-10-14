@@ -126,8 +126,8 @@ retry once, then stop, if the data changed underneath them.
 
 | Tool | Data | Commands |
 |---|---|---|
-| `jobs_store.py` | `data.json` | `list`, `find` (is this posting already here?), `add`, `update`, `move` (status, with the dates stamped), `note` |
-| `contacts_store.py` | `contacts.json` | `list`, `add`, `update`, `quota` |
+| `jobs_store.py` | `data.json` | `list`, `find` (is this posting already here?), `add`, `update`, `move` (status, with the dates stamped), `note`, `posting` (open or closed today; a closed one ends a job not applied for), `list --check-due` |
+| `contacts_store.py` | `contacts.json` | `list`, `add`, `update`, `quota`, `settle` (stop outreach for jobs that closed or already have a referral) |
 
 ```bash
 python3 jobs_store.py list --status "To Apply" --fields company,role,fitScore
