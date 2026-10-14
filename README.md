@@ -55,7 +55,7 @@ The skills live in `.agents/skills/`, so a fresh clone has them.
 | "apply to <company>" | `apply-to-job` | Fills the application form from your answer bank and stops for your review before submitting |
 | "prep me for <company>" | `interview-prep` | Researches the company and round, and builds stories from your real experience |
 | "check for job replies" | `reply-monitor` | Reads your inbox for replies and advances the cards |
-| "clean up my tailored docs" | `docs-cleanup` | Archives documents of finished applications |
+| "clean up my tailored docs", "run the cleanup" | `docs-cleanup` | Archives documents of finished applications, closes stale cards and archives closed ones. Previews first; never deletes |
 
 ## What is in the folder
 
