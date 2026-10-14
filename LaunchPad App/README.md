@@ -190,8 +190,8 @@ the changes up when you switch back to it:
 - **job-reply-monitor** — scans Gmail for application replies and advances
   statuses (`Phone Screen`, `Interviewing`, `Rejected`, …).
 - **cleanup** — `cleanup.py` (run at the end of each evening routine; `--dry-run`
-  to preview). Auto-closes stale Screening (21 days) and ghosted Applied (30
-  days) cards, archives closed cards and people 30 days after closing into
+  to preview). Auto-closes stale Screening (21 days) and ghosted Applied (follow-up
+  date passed by 30 days) cards, archives closed cards and people 30 days after closing into
   `Archive/tracker/`, moves old listings and reviews to `Archive/listings/`,
   trims `seen-postings.json` to 45 days, and archives finished
   `Applications/<Company>/` folders. Archive only, never delete. Closing a card

@@ -120,7 +120,7 @@ The job-search skills live in this repo, so a fresh clone has them. Each is a fo
 | `generate-docs` | Write a tailored resume and cover letter for To Apply cards |
 | `apply-to-job` | Fill an application form from the answer bank and stop for review before submitting |
 | `interview-prep` | Build a prep document for one interview and link it on the card |
-| `docs-cleanup` | Archive documents of finished applications |
+| `docs-cleanup` | Run the cleanup: archive documents of finished applications, close stale cards, archive closed cards and people. Never deletes |
 | `agents-bootstrap` | Set up or refresh this `.agents/` layout in a repository |
 
 `referral-outreach/Outreach-Rules.md` is shared by the three LinkedIn skills: read it before doing anything on LinkedIn or by email.
