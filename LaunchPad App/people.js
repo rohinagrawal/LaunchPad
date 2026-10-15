@@ -299,7 +299,9 @@ var People = (function () {
     var html = '<p class="pnotes">Sent ' + esc(c.dateAsked) + ': ' + esc(c.askMessage) + '</p>';
     // No follow-up goes to someone who has answered.
     if (c.followupMessage && !c.dateFollowedUp && !c.dateReplied) {
-      html += '<label>Follow-up draft</label><textarea data-act="followup">' + esc(c.followupMessage) + '</textarea>' + holdToggle(c);
+      html += '<label>Follow-up draft</label><textarea data-act="followup">' + esc(c.followupMessage) + '</textarea>' +
+        '<label class="ptoggle"><input type="checkbox" data-act="followupok"' + (c.followupApproved ? ' checked' : '') +
+        (PeopleCore.canApproveFollowup(c) || c.followupApproved ? '' : ' disabled') + '> Approve follow-up</label>' + holdToggle(c);
     }
     return html;
   }
@@ -567,7 +569,12 @@ var People = (function () {
       var box = t.parentNode.querySelector('[data-act="askok"]');
       if (box) { box.checked = false; box.disabled = !PeopleCore.canApproveAsk(c); }
     }
-    else if (act === 'followup') c.followupMessage = t.value;
+    else if (act === 'followup') {
+      c.followupMessage = t.value; c.followupApproved = false;
+      var fbox = t.parentNode.querySelector('[data-act="followupok"]');
+      if (fbox) { fbox.checked = false; fbox.disabled = !PeopleCore.canApproveFollowup(c); }
+    }
+    else if (act === 'followupok') c.followupApproved = t.checked && PeopleCore.canApproveFollowup(c);
     else if (act === 'reply') {
       PeopleCore.setReplyDraft(c, t.value);
       var tick = t.parentNode.querySelector('[data-act="replyok"]');

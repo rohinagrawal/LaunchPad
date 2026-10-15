@@ -12,6 +12,12 @@
       "runtimeExecutable": "python3",
       "runtimeArgs": ["Site/build.py", "--serve", "8801"],
       "port": 8801
+    },
+    {
+      "name": "demo",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["Demo/demo_people.py", "--port", "8799"],
+      "port": 8799
     }
   ]
 }
