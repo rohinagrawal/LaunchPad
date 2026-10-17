@@ -36,6 +36,7 @@ uv run Demo/demo_people.py --port 8799
 |---|---|
 | [Docs/Setup.md](Docs/Setup.md) | Go from nothing to a working setup, step by step, including a new computer and common problems |
 | [Docs/Automation.md](Docs/Automation.md) | Have the search, people research and drafts run every day |
+| [Docs/Workflow.md](Docs/Workflow.md) | See how everything fits together: every status, stage, automation, approval and file, with diagrams |
 | [Docs/Hosting.md](Docs/Hosting.md) | Put the tracker online behind a password, for your phone |
 | `START-HERE.md` | Follow the day-to-day loop. Setup writes this file for you |
 | [LaunchPad App/README.md](LaunchPad%20App/README.md) | Learn the screens, storage modes and server endpoints |
