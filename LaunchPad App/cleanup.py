@@ -22,7 +22,9 @@ Rules (numbers are the constants below):
       Job Listings/New-Openings-<date>.md older than REVIEW_KEEP_DAYS -> Archive/listings/<YYYY-MM>/
    6. Job Listings/seen-postings.json keeps only the last LEDGER_KEEP_DAYS days.
    7. Applications/<Company>/ once the company has no Screening/To Apply role and at least
-      one applied/closed one -> Archive/applications/<Company>/.
+      one applied/closed one -> Archive/applications/<Company>/. Every job file field
+      (resumePath, coverPath, referralPath, prepPath, any other …Path) under a moved folder
+      is repointed to the archived copy; one left dangling by an earlier run is fixed too.
 Git branch cleanup is done by the routine (git fetch --prune; delete merged local branches).
 
 Data is written the same way the app writes it: through the tracker server when it is
@@ -106,7 +108,7 @@ def move(src, dest_dir, dry):
             os.rmdir(src)
         else:
             shutil.move(src, dest)
-    return os.path.relpath(dest, ROOT)
+    return os.path.relpath(dest, ROOT).replace(os.sep, "/")
 
 
 # ---------------------------------------------------------------- rules
@@ -174,6 +176,34 @@ def clean_people(contacts, apps, archived_ids, today, report):
     return keep, archived
 
 
+def archived_path(rel, moved):
+    """Where a file under Applications/ lives now, or None if it has not moved."""
+    for old, new in moved.items():
+        if rel == old or rel.startswith(old + "/"):
+            return new + rel[len(old):]
+    if os.path.exists(os.path.join(ROOT, rel)):
+        return None
+    parts = rel.split("/")  # dangling: look for it where an earlier run archived it
+    rest = parts[2:] if len(parts) > 2 and parts[1] == "Archive" else parts[1:]
+    guess = "/".join(["Archive", "applications"] + rest)
+    return guess if rest and os.path.exists(os.path.join(ROOT, guess)) else None
+
+
+def repoint_paths(jobs, moved, report):
+    """Point each job's file fields (…Path) at the folder cleanup moved them to."""
+    for a in jobs:
+        for field, val in list(a.items()):
+            if not field.endswith("Path") or not isinstance(val, str):
+                continue
+            rel = val.replace("\\", "/")
+            if not rel.startswith("Applications/"):
+                continue
+            new = archived_path(rel, moved)
+            if new:
+                a[field] = new
+                report["paths_repointed"].append(f"{a.get('company','')} — {a.get('role','')}: {field} → {new}")
+
+
 def clean_files(apps, archived_jobs, today, dry, report):
     month = today.isoformat()[:7]
     dest = os.path.join(ARCHIVE, "listings", month)
@@ -206,6 +236,7 @@ def clean_files(apps, archived_jobs, today, dry, report):
     seen = {key(a.get("company")).replace("/", "").replace(":", "") for a in apps} | \
            {key(a.get("company")).replace("/", "").replace(":", "") for a in archived_jobs}
     app_dest = os.path.join(ARCHIVE, "applications")
+    moved = {}  # "Applications/…" folder -> where it went, both relative to ROOT
     if os.path.isdir(APPLICATIONS):
         for d in sorted(os.listdir(APPLICATIONS)):
             p = os.path.join(APPLICATIONS, d)
@@ -213,13 +244,17 @@ def clean_files(apps, archived_jobs, today, dry, report):
                 continue
             if d == "Archive":
                 for old in sorted(os.listdir(p)):
-                    report["files_archived"].append(move(os.path.join(p, old), app_dest, dry))
+                    moved[f"Applications/Archive/{old}"] = move(os.path.join(p, old), app_dest, dry)
+                    report["files_archived"].append(moved[f"Applications/Archive/{old}"])
                 if not dry:
                     os.rmdir(p)
                 continue
             k = key(d).replace("/", "").replace(":", "")
             if k in seen and k not in active:
-                report["files_archived"].append(move(p, app_dest, dry))
+                moved[f"Applications/{d}"] = move(p, app_dest, dry)
+                report["files_archived"].append(moved[f"Applications/{d}"])
+    repoint_paths(apps, moved, report)
+    repoint_paths(archived_jobs, moved, report)  # before they are written to Archive/tracker/
 
 
 def main(argv=None):
@@ -229,7 +264,7 @@ def main(argv=None):
     args = ap.parse_args(argv)
     today = dt.date.fromisoformat(args.today) if args.today else dt.date.today()
     report = {k: [] for k in ("auto_closed", "jobs_archived", "people_skipped", "people_archived",
-                              "withdraw_suggestions", "files_archived")}
+                              "withdraw_suggestions", "files_archived", "paths_repointed")}
 
     apps, jobs_rev = load_jobs()
     before_jobs = json.dumps(apps, sort_keys=True)
@@ -254,7 +289,8 @@ def main(argv=None):
     print(f"## {title} — {today.isoformat()}")
     labels = [("auto_closed", "Auto-closed cards (drag back to undo)"), ("jobs_archived", "Cards archived"),
               ("people_skipped", "People auto-skipped"), ("people_archived", "People archived"),
-              ("files_archived", "Files archived"), ("withdraw_suggestions", "Withdraw suggestions (pending invites)")]
+              ("files_archived", "Files archived"), ("paths_repointed", "Job file paths repointed"),
+              ("withdraw_suggestions", "Withdraw suggestions (pending invites)")]
     any_change = False
     for k, label in labels:
         items = report[k]

@@ -23,7 +23,7 @@ The numbers are constants at the top of `cleanup.py`.
 | Pending invites | A connection request pending 21+ days | Reported as a withdraw suggestion only; withdrawing is done on LinkedIn with the user's yes |
 | Listings | The saved posting of an archived card; `New-Openings-*.md` older than 14 days | Moved to `Archive/listings/<YYYY-MM>/` |
 | Posting ledger | `Job Listings/seen-postings.json` | Keeps the last 45 days |
-| Application documents | `Applications/<Company>/` once the company has cards on the board but none in Screening, Researching or To Apply | Moved to `Archive/applications/<Company>/`. A leftover `Applications/Archive/` from older versions is folded in there too |
+| Application documents | `Applications/<Company>/` once the company has cards on the board but none in Screening, Researching or To Apply | Moved to `Archive/applications/<Company>/`. A leftover `Applications/Archive/` from older versions is folded in there too. Cards' file paths (`referralPath`, `resumePath`, `coverPath`, `prepPath`) into a moved folder are repointed to the archived copy, as are ones an earlier run left dangling |
 
 A company's shared resume and cover letter stay in `Applications/` while any of its roles is still before applying.
 
