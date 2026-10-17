@@ -194,7 +194,8 @@ the changes up when you switch back to it:
   date passed by 30 days) cards, archives closed cards and people 30 days after closing into
   `Archive/tracker/`, moves old listings and reviews to `Archive/listings/`,
   trims `seen-postings.json` to 45 days, and archives finished
-  `Applications/<Company>/` folders. Archive only, never delete. Closing a card
+  `Applications/<Company>/` folders, repointing the cards' file paths to the
+  archived copies. Archive only, never delete. Closing a card
   in the app stamps `dateClosed`; reopening it clears that. `cleanup_applied.py`
   is kept as a wrapper for older callers.
 
